@@ -9,6 +9,8 @@ const BOSS_SPEED_PHASE_ONE := 78.0
 const BOSS_SPEED_PHASE_TWO := 112.0
 const PLAYER_MAX_HP := 100
 const BOSS_MAX_HP := 300
+const HERO_TEXTURE = preload("res://assets/hero.svg")
+const AKTEYNT_TEXTURE = preload("res://assets/akteynt.svg")
 
 var player_pos := Vector2(250, 270)
 var boss_pos := Vector2(700, 270)
@@ -300,10 +302,13 @@ func _draw() -> void:
 		draw_circle(player_pos, 230.0 * nova_progress, Color(0.88, 0.48, 1.0, 0.8), false, 4.0)
 	if slash_timer > 0.0:
 		draw_arc(player_pos + facing * 22.0, 48.0, facing.angle() - 1.0, facing.angle() + 1.0, 18, Color(0.75, 0.93, 1.0, 0.95), 7.0)
-	draw_circle(player_pos, 34.0, Color(0.22, 0.65, 1.0, 0.12))
-	draw_circle(player_pos, 21.0, Color("#4bc7ff"))
-	draw_circle(player_pos + Vector2(0, -5), 9.0, Color("#d8f5ff"))
-	draw_line(player_pos, player_pos + facing * 31.0, Color("#e8f7ff"), 5.0)
+	# Hero sprite: subtle idle bob and a shadow keep the character grounded.
+	var hero_bob := sin(Time.get_ticks_msec() * 0.006) * 2.2
+	draw_ellipse_shadow(player_pos + Vector2(0, 25), Vector2(24, 8), Color(0.02, 0.01, 0.06, 0.78))
+	if hit_flash > 0.0 and hurt_cooldown > 0.0:
+		draw_circle(player_pos, 42.0, Color(1.0, 0.15, 0.25, 0.22))
+	var hero_rect := Rect2(player_pos + Vector2(-42, -49 + hero_bob), Vector2(84, 84))
+	draw_texture_rect(HERO_TEXTURE, hero_rect, false)
 
 	for orb in boss_orbs:
 		var orb_pos: Vector2 = orb["pos"]
@@ -314,21 +319,15 @@ func _draw() -> void:
 		draw_circle(boss_pos, 82.0, Color("#c74aff"), false, 4.0)
 	if boss_hp > 0:
 		var boss_color := Color("#d14aff") if boss_hp > 150 else Color("#ff367e")
-		draw_circle(boss_pos, 62.0, Color(boss_color.r, boss_color.g, boss_color.b, 0.12))
+		var boss_bob := sin(Time.get_ticks_msec() * 0.0035 + 1.2) * 2.0
+		draw_ellipse_shadow(boss_pos + Vector2(0, 35), Vector2(38, 12), Color(0.02, 0.0, 0.05, 0.88))
+		draw_circle(boss_pos, 75.0, Color(boss_color.r, boss_color.g, boss_color.b, 0.10))
 		if boss_windup > 0.0:
-			draw_circle(boss_pos, 70.0, Color("#ff3c75"), false, 4.0)
-		draw_circle(boss_pos, 42.0, Color("#321044"))
-		draw_circle(boss_pos, 34.0, boss_color)
-		draw_colored_polygon(PackedVector2Array([
-			boss_pos + Vector2(-28, -26), boss_pos + Vector2(-23, -53),
-			boss_pos + Vector2(-8, -34), boss_pos + Vector2(0, -45),
-			boss_pos + Vector2(11, -34), boss_pos + Vector2(28, -52),
-			boss_pos + Vector2(25, -20)
-		]), Color("#d9a8ff"))
-		draw_circle(boss_pos + Vector2(-12, -4), 4.0, Color("#ff2f9b"))
-		draw_circle(boss_pos + Vector2(12, -4), 4.0, Color("#ff2f9b"))
+			draw_circle(boss_pos, 76.0, Color("#ff3c75"), false, 4.0)
+		var boss_rect := Rect2(boss_pos + Vector2(-64, -72 + boss_bob), Vector2(128, 128))
+		draw_texture_rect(AKTEYNT_TEXTURE, boss_rect, false)
 	else:
-		draw_circle(boss_pos, 22.0, Color(0.55, 0.25, 0.75, 0.35))
+		draw_circle(boss_pos, 35.0, Color(0.55, 0.25, 0.75, 0.25))
 
 	draw_string(ThemeDB.fallback_font, Vector2(28, 28), "THE FINAL BOSS", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("#e8d8ff"))
 	draw_string(ThemeDB.fallback_font, Vector2(28, 47), "ABYSS ARENA  |  PHASE %d" % (2 if boss_hp <= 150 else 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#a89abf"))
@@ -354,6 +353,13 @@ func _draw() -> void:
 		var headline := "VICTORY" if victory else "DEFEATED"
 		draw_string(ThemeDB.fallback_font, Vector2(0, screen_size.y * 0.43), headline, HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 34, Color("#f0d7ff"))
 		draw_string(ThemeDB.fallback_font, Vector2(0, screen_size.y * 0.52), "TAP TO PLAY AGAIN  |  PRESS R", HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 16, Color("#bca5d8"))
+
+func draw_ellipse_shadow(center: Vector2, radii: Vector2, color: Color) -> void:
+	# Lightweight ellipse made from layered circles for a soft ground shadow.
+	for i in range(5, 0, -1):
+		var scale := float(i) / 5.0
+		draw_circle(center, radii.x * scale, Color(color.r, color.g, color.b, color.a * (1.0 - scale * 0.55)))
+		draw_circle(center + Vector2(0, 0), radii.y * scale, Color(color.r, color.g, color.b, 0.0))
 
 func _draw_bar(pos: Vector2, width: float, height: float, ratio: float, fill: Color) -> void:
 	draw_rect(Rect2(pos, Vector2(width, height)), Color("#342840"), true)
