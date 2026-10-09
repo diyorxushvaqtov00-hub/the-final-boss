@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+ <radialGradient id="a"><stop stop-color="#50e5ff" stop-opacity=".45"/><stop offset="1" stop-color="#50e5ff" stop-opacity="0"/></radialGradient>
+ <linearGradient id="coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1e9be8"/><stop offset=".55" stop-color="#1851a9"/><stop offset="1" stop-color="#111a49"/></linearGradient>
+ <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#293b66"/><stop offset="1" stop-color="#080d20"/></linearGradient>
+ <linearGradient id="blade"><stop stop-color="#e7fdff"/><stop offset=".5" stop-color="#4fe7ff"/><stop offset="1" stop-color="#8c79ff"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<ellipse cx="64" cy="104" rx="34" ry="15" fill="#39bfff" opacity=".22" filter="url(#glow)"/>
+<ellipse cx="64" cy="105" rx="25" ry="8" fill="#050918" opacity=".8"/>
+<!-- flowing cloak -->
+<path d="M43 54 Q26 69 31 99 L48 91 64 112 80 91 98 99 Q101 68 84 54Z" fill="#101b42" stroke="#50cfff" stroke-width="2"/>
+<path d="M45 59 L54 78 64 104 74 78 83 59 76 90 64 101 52 90Z" fill="url(#coat)"/>
+<path d="M43 61 L25 83 38 90 51 72M85 61 L103 83 90 90 77 72" fill="#142958" stroke="#3c9fe9" stroke-width="2"/>
+<!-- shoulders and arms -->
+<path d="M43 55 Q32 53 31 65 L40 76 51 66Z M85 55 Q96 53 97 65 L88 76 77 66Z" fill="#2677c7" stroke="#67dfff" stroke-width="2"/>
+<!-- neck and face -->
+<path d="M55 43 L55 57 Q64 65 73 57 L73 43Z" fill="#d8b9b0"/>
+<path d="M42 27 Q43 9 64 10 Q86 11 86 31 L80 48 Q74 59 64 60 Q51 57 46 46Z" fill="#e8cfc9" stroke="#a9c6f4" stroke-width="1.5"/>
+<!-- hair silhouette -->
+<path d="M40 35 Q34 12 55 8 L65 4 69 10 83 9 91 27 84 43 78 30 71 24 62 31 54 26 48 42Z" fill="url(#hair)" stroke="#5479b7" stroke-width="2"/>
+<path d="M42 25 L51 16 58 23 68 13 79 20 86 31 75 27 68 33 59 27 49 35Z" fill="#354d83"/>
+<!-- eyes -->
+<path d="M48 37 L59 39 54 43Z M69 39 L80 36 75 43Z" fill="#07152c"/>
+<path d="M50 38 L56 39" stroke="#58e9ff" stroke-width="2"/><path d="M72 39 L78 37" stroke="#58e9ff" stroke-width="2"/>
+<path d="M61 48 Q65 50 68 48" fill="none" stroke="#9b6d73" stroke-width="1.5"/>
+<!-- chest armor -->
+<path d="M49 61 L64 70 79 61 74 83 64 91 54 83Z" fill="#15254f" stroke="#69eaff" stroke-width="2"/>
+<path d="M64 72 L69 79 64 86 59 79Z" fill="#b3f8ff"/>
+<!-- sword -->
+<g transform="rotate(-29 96 72)"><path d="M96 29 L101 69 96 83 91 69Z" fill="url(#blade)" stroke="#efffff" stroke-width="1.5"/><path d="M86 67 L106 67" stroke="#f8ffff" stroke-width="4"/><path d="M96 81 L96 101" stroke="#d6b77a" stroke-width="5"/><path d="M91 99 L101 103" stroke="#ffe3a3" stroke-width="3"/></g>
+<path d="M35 69 Q25 79 31 90" fill="none" stroke="#b7f7ff" stroke-width="2" opacity=".7"/>
+</svg>
