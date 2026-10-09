@@ -2,12 +2,15 @@ extends Node2D
 
 const ARENA := Rect2(32, 48, 896, 444)
 const PLAYER_SPEED := 240.0
-const BOSS_SPEED := 78.0
+const BOSS_SPEED_PHASE_ONE := 78.0
+const BOSS_SPEED_PHASE_TWO := 112.0
+const PLAYER_MAX_HP := 100
+const BOSS_MAX_HP := 300
 
 var player_pos := Vector2(250, 270)
 var boss_pos := Vector2(700, 270)
-var player_hp := 100
-var boss_hp := 300
+var player_hp := PLAYER_MAX_HP
+var boss_hp := BOSS_MAX_HP
 var attack_cooldown := 0.0
 var skill_cooldown := 0.0
 var hurt_cooldown := 0.0
@@ -17,12 +20,24 @@ var touch_direction := Vector2.ZERO
 var move_touch_id := -1
 var attack_requested := false
 var skill_requested := false
+var facing := Vector2.RIGHT
+var game_over := false
+var victory := false
+var boss_windup := 0.0
+var boss_attack_cooldown := 0.0
+var hit_flash := 0.0
 
 func _process(delta: float) -> void:
+	if game_over:
+		queue_redraw()
+		return
+
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	skill_cooldown = maxf(0.0, skill_cooldown - delta)
 	hurt_cooldown = maxf(0.0, hurt_cooldown - delta)
 	message_time = maxf(0.0, message_time - delta)
+	boss_attack_cooldown = maxf(0.0, boss_attack_cooldown - delta)
+	hit_flash = maxf(0.0, hit_flash - delta)
 
 	var direction := Vector2.ZERO
 	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
@@ -37,6 +52,8 @@ func _process(delta: float) -> void:
 		direction = touch_direction
 	if direction.length() > 1.0:
 		direction = direction.normalized()
+	if direction.length() > 0.05:
+		facing = direction.normalized()
 
 	player_pos += direction * PLAYER_SPEED * delta
 	player_pos.x = clampf(player_pos.x, ARENA.position.x + 22.0, ARENA.end.x - 22.0)
@@ -49,46 +66,111 @@ func _process(delta: float) -> void:
 	attack_requested = false
 	skill_requested = false
 
-	if boss_hp > 0:
-		var to_player := player_pos - boss_pos
-		if to_player.length() > 86.0:
-			boss_pos += to_player.normalized() * BOSS_SPEED * delta
-		elif hurt_cooldown <= 0.0:
-			player_hp = maxi(0, player_hp - 8)
-			hurt_cooldown = 0.8
-			message = "AKTEYNT STRIKES!"
-			message_time = 0.7
-
+	_update_boss(delta)
 	queue_redraw()
 
+func _update_boss(delta: float) -> void:
+	if boss_hp <= 0:
+		return
+
+	var to_player := player_pos - boss_pos
+	var distance := to_player.length()
+	var phase_two := boss_hp <= 150
+	var boss_speed := BOSS_SPEED_PHASE_TWO if phase_two else BOSS_SPEED_PHASE_ONE
+
+	if phase_two and message_time <= 0.0:
+		message = "AKTEYNT ENTERS ABYSS PHASE"
+		message_time = 1.4
+
+	if boss_windup > 0.0:
+		boss_windup = maxf(0.0, boss_windup - delta)
+		if boss_windup == 0.0:
+			if player_pos.distance_to(boss_pos) <= (145.0 if phase_two else 120.0):
+				_damage_player(18 if phase_two else 12)
+			boss_attack_cooldown = 1.35 if phase_two else 1.8
+	elif distance > 92.0:
+		boss_pos += to_player.normalized() * boss_speed * delta
+	elif boss_attack_cooldown <= 0.0:
+		boss_windup = 0.55
+		message = "AKTEYNT IS CHARGING A STRIKE!"
+		message_time = 0.55
+
+func _damage_player(amount: int) -> void:
+	if hurt_cooldown > 0.0 or game_over:
+		return
+	player_hp = maxi(0, player_hp - amount)
+	hurt_cooldown = 0.7
+	hit_flash = 0.25
+	message = "YOU TOOK %d DAMAGE" % amount
+	message_time = 0.8
+	if player_hp == 0:
+		game_over = true
+		victory = false
+		message = "YOU HAVE FALLEN"
+		message_time = 999.0
+
 func _do_attack() -> void:
-	if attack_cooldown > 0.0 or boss_hp <= 0:
+	if attack_cooldown > 0.0 or boss_hp <= 0 or game_over:
 		return
 	attack_cooldown = 0.42
-	if player_pos.distance_to(boss_pos) <= 118.0:
+	var to_boss := boss_pos - player_pos
+	if to_boss.length() <= 118.0 and (to_boss.length() < 0.01 or facing.dot(to_boss.normalized()) > -0.25):
 		boss_hp = maxi(0, boss_hp - 18)
+		hit_flash = 0.18
 		message = "DARK SLASH  -18"
 		message_time = 0.6
-		if boss_hp == 0:
-			message = "THE DARK LORD HAS FALLEN"
-			message_time = 5.0
+		_check_victory()
 
 func _do_skill() -> void:
-	if skill_cooldown > 0.0 or boss_hp <= 0:
+	if skill_cooldown > 0.0 or boss_hp <= 0 or game_over:
 		return
 	skill_cooldown = 4.0
 	if player_pos.distance_to(boss_pos) <= 230.0:
 		boss_hp = maxi(0, boss_hp - 42)
+		hit_flash = 0.24
 		message = "ABYSS NOVA  -42"
 		message_time = 0.9
-		if boss_hp == 0:
-			message = "THE DARK LORD HAS FALLEN"
-			message_time = 5.0
+		_check_victory()
 	else:
 		message = "MOVE CLOSER TO USE ABYSS NOVA"
 		message_time = 0.9
 
+func _check_victory() -> void:
+	if boss_hp <= 0:
+		game_over = true
+		victory = true
+		message = "THE DARK LORD HAS FALLEN"
+		message_time = 999.0
+
+func _restart() -> void:
+	player_pos = Vector2(250, 270)
+	boss_pos = Vector2(700, 270)
+	player_hp = PLAYER_MAX_HP
+	boss_hp = BOSS_MAX_HP
+	attack_cooldown = 0.0
+	skill_cooldown = 0.0
+	hurt_cooldown = 0.0
+	boss_windup = 0.0
+	boss_attack_cooldown = 0.0
+	hit_flash = 0.0
+	facing = Vector2.RIGHT
+	game_over = false
+	victory = false
+	message = "DARK LORD AKTEYNT AWAKENS"
+	message_time = 2.0
+
 func _input(event: InputEvent) -> void:
+	if game_over:
+		if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
+			_restart()
+		elif event is InputEventScreenTouch and event.pressed:
+			_restart()
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
+		_restart()
+		return
+
 	if event is InputEventScreenTouch:
 		var screen_size := get_viewport_rect().size
 		if event.pressed:
@@ -124,15 +206,20 @@ func _draw() -> void:
 		draw_circle(pillar, 18.0, Color("#302047"))
 		draw_circle(pillar, 18.0, Color("#a66bff"), false, 2.0)
 
+	if hit_flash > 0.0 and hurt_cooldown > 0.0:
+		draw_circle(player_pos, 39.0, Color(1.0, 0.15, 0.25, 0.25))
 	draw_circle(player_pos, 34.0, Color(0.22, 0.65, 1.0, 0.12))
 	draw_circle(player_pos, 21.0, Color("#4bc7ff"))
 	draw_circle(player_pos + Vector2(0, -5), 9.0, Color("#d8f5ff"))
-	draw_line(player_pos + Vector2(12, 5), player_pos + Vector2(29, -10), Color("#e8f7ff"), 5.0)
+	draw_line(player_pos, player_pos + facing * 31.0, Color("#e8f7ff"), 5.0)
 
 	if boss_hp > 0:
-		draw_circle(boss_pos, 58.0, Color(0.72, 0.08, 0.95, 0.12))
+		var boss_color := Color("#d14aff") if boss_hp > 150 else Color("#ff367e")
+		draw_circle(boss_pos, 62.0, Color(boss_color.r, boss_color.g, boss_color.b, 0.12))
+		if boss_windup > 0.0:
+			draw_circle(boss_pos, 70.0, Color("#ff3c75"), false, 4.0)
 		draw_circle(boss_pos, 42.0, Color("#321044"))
-		draw_circle(boss_pos, 34.0, Color("#8b21b8"))
+		draw_circle(boss_pos, 34.0, boss_color)
 		draw_colored_polygon(PackedVector2Array([
 			boss_pos + Vector2(-28, -26), boss_pos + Vector2(-23, -53),
 			boss_pos + Vector2(-8, -34), boss_pos + Vector2(0, -45),
@@ -145,11 +232,11 @@ func _draw() -> void:
 		draw_circle(boss_pos, 22.0, Color(0.55, 0.25, 0.75, 0.35))
 
 	draw_string(ThemeDB.fallback_font, Vector2(28, 28), "THE FINAL BOSS", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("#e8d8ff"))
-	draw_string(ThemeDB.fallback_font, Vector2(28, 47), "TOP-DOWN COMBAT PROTOTYPE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#a89abf"))
-	_draw_bar(Vector2(28, 62), 230.0, 16.0, float(player_hp) / 100.0, Color("#45d5ff"))
-	draw_string(ThemeDB.fallback_font, Vector2(28, 98), "HERO  %d / 100" % player_hp, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
-	_draw_bar(Vector2(screen_size.x - 278, 62), 250.0, 18.0, float(boss_hp) / 300.0, Color("#d14aff"))
-	draw_string(ThemeDB.fallback_font, Vector2(screen_size.x - 278, 98), "DARK LORD AKTEYNT  %d / 300" % boss_hp, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
+	draw_string(ThemeDB.fallback_font, Vector2(28, 47), "ABYSS ARENA  |  PHASE %d" % (2 if boss_hp <= 150 else 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#a89abf"))
+	_draw_bar(Vector2(28, 62), 230.0, 16.0, float(player_hp) / PLAYER_MAX_HP, Color("#45d5ff"))
+	draw_string(ThemeDB.fallback_font, Vector2(28, 98), "HERO  %d / %d" % [player_hp, PLAYER_MAX_HP], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
+	_draw_bar(Vector2(screen_size.x - 278, 62), 250.0, 18.0, float(boss_hp) / BOSS_MAX_HP, Color("#d14aff") if boss_hp > 150 else Color("#ff367e"))
+	draw_string(ThemeDB.fallback_font, Vector2(screen_size.x - 278, 98), "DARK LORD AKTEYNT  %d / %d" % [boss_hp, BOSS_MAX_HP], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
 
 	if message_time > 0.0:
 		draw_string(ThemeDB.fallback_font, Vector2(0, 132), message, HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 18, Color("#f0d7ff"))
@@ -159,7 +246,13 @@ func _draw() -> void:
 	draw_string(ThemeDB.fallback_font, Vector2(48, screen_size.y - 84), "MOVE", HORIZONTAL_ALIGNMENT_CENTER, 104, 13, Color.WHITE)
 	_draw_button(Vector2(screen_size.x - 164, screen_size.y - 104), "ATTACK", Color("#8e37c7"))
 	_draw_button(Vector2(screen_size.x - 78, screen_size.y - 104), "SKILL", Color("#bd267f"))
-	draw_string(ThemeDB.fallback_font, Vector2(20, screen_size.y - 14), "PC: WASD/ARROWS move | SPACE attack | E skill", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("#b6a8c9"))
+	draw_string(ThemeDB.fallback_font, Vector2(20, screen_size.y - 14), "PC: WASD/ARROWS move | SPACE attack | E skill | R restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("#b6a8c9"))
+
+	if game_over:
+		draw_rect(Rect2(Vector2.ZERO, screen_size), Color(0.02, 0.01, 0.05, 0.78), true)
+		var headline := "VICTORY" if victory else "DEFEATED"
+		draw_string(ThemeDB.fallback_font, Vector2(0, screen_size.y * 0.43), headline, HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 34, Color("#f0d7ff"))
+		draw_string(ThemeDB.fallback_font, Vector2(0, screen_size.y * 0.52), "TAP TO PLAY AGAIN  |  PRESS R", HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 16, Color("#bca5d8"))
 
 func _draw_bar(pos: Vector2, width: float, height: float, ratio: float, fill: Color) -> void:
 	draw_rect(Rect2(pos, Vector2(width, height)), Color("#342840"), true)
