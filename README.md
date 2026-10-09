@@ -12,7 +12,7 @@
 - Boss attacks have a visible wind-up cue so the player can try to dodge.
 - Victory, defeat, and restart states.
 - On-screen health bars and skill/dash cooldown labels.
-- Original transparent SVG artwork for the hero and Dark Lord Akteynt, with floating idle motion, ground shadows, and phase-colored glow.
+- Custom transparent SVG artwork for the hero and Akteynt, the Abyss Empress, with floating idle motion, ground shadows, and phase-colored glow.
 - Directional hero rotation and lightweight cyan/purple/pink particle bursts for dash, slash, skill, boss-orb launch, and damage impacts.
 - Animated boss attack telegraph, short forward strike lunge, expanding slash arc, and brief hit-flash reaction.
 - A layered obsidian arena with a glowing rotating ritual seal, rune marks, stone cracks, and ambient floating embers.
@@ -53,3 +53,11 @@ The GitHub Actions workflow runs a headless Godot project check on pushes and pu
 3. Add sound effects, more enemy patterns, and additional arenas.
 4. Separate gameplay into reusable scenes and scripts.
 5. Set up a reproducible Android APK build.
+
+
+## Current visual milestone
+- Akteynt is named and presented as **Akteynt — Abyss Empress**, matching the supplied character direction rather than the old generic Dark Lord label.
+- The boss is larger on screen and subtly scales during phase two to make the transformation feel more imposing.
+- The hero sprite is slightly larger for better mobile readability.
+
+**Honest status:** this is still an in-progress prototype. The supplied concept image is the art target; full multi-frame character animation, a rigged skeleton, and final-quality arena assets are not complete or verified in Godot yet.
