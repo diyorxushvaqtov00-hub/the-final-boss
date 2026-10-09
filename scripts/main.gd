@@ -36,6 +36,9 @@ var dash_direction := Vector2.RIGHT
 var dash_requested := false
 var slash_timer := 0.0
 var nova_timer := 0.0
+var orb_windup := 0.0
+var orb_cooldown := 0.0
+var boss_orbs: Array[Dictionary] = []
 
 func _process(delta: float) -> void:
 	if game_over:
@@ -52,6 +55,8 @@ func _process(delta: float) -> void:
 	dash_cooldown = maxf(0.0, dash_cooldown - delta)
 	slash_timer = maxf(0.0, slash_timer - delta)
 	nova_timer = maxf(0.0, nova_timer - delta)
+	orb_cooldown = maxf(0.0, orb_cooldown - delta)
+	orb_windup = maxf(0.0, orb_windup - delta)
 
 	var direction := Vector2.ZERO
 	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
@@ -87,6 +92,7 @@ func _process(delta: float) -> void:
 	skill_requested = false
 
 	_update_boss(delta)
+	_update_boss_orbs(delta)
 	queue_redraw()
 
 func _update_boss(delta: float) -> void:
@@ -103,6 +109,13 @@ func _update_boss(delta: float) -> void:
 		message = "AKTEYNT ENTERS ABYSS PHASE"
 		message_time = 1.8
 
+	if phase_two and distance > 165.0 and orb_cooldown <= 0.0 and orb_windup <= 0.0:
+		orb_windup = 0.65
+		message = "AKTEYNT SUMMONS AN ABYSS ORB!"
+		message_time = 0.65
+	elif orb_windup > 0.0 and orb_windup <= 0.05:
+		_spawn_boss_orb()
+		orb_cooldown = 2.4
 	if boss_windup > 0.0:
 		boss_windup = maxf(0.0, boss_windup - delta)
 		if boss_windup == 0.0:
@@ -115,6 +128,31 @@ func _update_boss(delta: float) -> void:
 		boss_windup = 0.55
 		message = "AKTEYNT IS CHARGING A STRIKE!"
 		message_time = 0.55
+
+func _spawn_boss_orb() -> void:
+	if boss_hp <= 0 or game_over:
+		return
+	var direction := (player_pos - boss_pos).normalized()
+	boss_orbs.append({"pos": boss_pos, "velocity": direction * 230.0, "life": 3.0})
+	message = "DODGE THE ABYSS ORB!"
+	message_time = 0.8
+
+func _update_boss_orbs(delta: float) -> void:
+	for i in range(boss_orbs.size() - 1, -1, -1):
+		var orb: Dictionary = boss_orbs[i]
+		var pos: Vector2 = orb["pos"]
+		var velocity: Vector2 = orb["velocity"]
+		var life: float = float(orb["life"]) - delta
+		pos += velocity * delta
+		if pos.distance_to(player_pos) < 25.0:
+			_damage_player(16)
+			boss_orbs.remove_at(i)
+		elif life <= 0.0 or not ARENA.has_point(pos):
+			boss_orbs.remove_at(i)
+		else:
+			orb["pos"] = pos
+			orb["life"] = life
+			boss_orbs[i] = orb
 
 func _damage_player(amount: int) -> void:
 	if hurt_cooldown > 0.0 or dash_timer > 0.0 or game_over:
@@ -193,6 +231,9 @@ func _restart() -> void:
 	nova_timer = 0.0
 	dash_requested = false
 	phase_two_announced = false
+	orb_windup = 0.0
+	orb_cooldown = 0.0
+	boss_orbs.clear()
 	facing = Vector2.RIGHT
 	game_over = false
 	victory = false
@@ -263,6 +304,13 @@ func _draw() -> void:
 	draw_circle(player_pos + Vector2(0, -5), 9.0, Color("#d8f5ff"))
 	draw_line(player_pos, player_pos + facing * 31.0, Color("#e8f7ff"), 5.0)
 
+	for orb in boss_orbs:
+		var orb_pos: Vector2 = orb["pos"]
+		draw_circle(orb_pos, 22.0, Color(0.72, 0.12, 1.0, 0.20))
+		draw_circle(orb_pos, 13.0, Color("#d85bff"))
+		draw_circle(orb_pos, 5.0, Color("#fff0ff"))
+	if orb_windup > 0.0:
+		draw_circle(boss_pos, 82.0, Color("#c74aff"), false, 4.0)
 	if boss_hp > 0:
 		var boss_color := Color("#d14aff") if boss_hp > 150 else Color("#ff367e")
 		draw_circle(boss_pos, 62.0, Color(boss_color.r, boss_color.g, boss_color.b, 0.12))
