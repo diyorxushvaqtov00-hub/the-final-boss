@@ -55,6 +55,9 @@ var boss_wave_timer := 0.0
 var boss_wave_radius := 0.0
 var boss_wave_hit := false
 var boss_wave_cooldown := 0.0
+var camera_shake := 0.0
+var camera_shake_strength := 0.0
+var phase_burst_timer := 0.0
 
 func _process(delta: float) -> void:
 	if game_over:
@@ -62,6 +65,8 @@ func _process(delta: float) -> void:
 		return
 
 	arena_time += delta
+	camera_shake = maxf(0.0, camera_shake - delta)
+	phase_burst_timer = maxf(0.0, phase_burst_timer - delta)
 	hero_trail_timer = maxf(0.0, hero_trail_timer - delta)
 	footstep_timer = maxf(0.0, footstep_timer - delta)
 	_update_hero_afterimages(delta)
@@ -158,9 +163,16 @@ func _update_boss(delta: float) -> void:
 		phase_two_announced = true
 		message = "AKTEYNT ENTERS ABYSS PHASE"
 		message_time = 1.8
+		phase_burst_timer = 1.15
+		camera_shake = 0.7
+		camera_shake_strength = 9.0
+		_spawn_particles(boss_pos, Color("#ff347e"), 38, 190.0)
+		_spawn_particles(boss_pos, Color("#bd4dff"), 30, 150.0)
 
 	if phase_two and distance <= 210.0 and boss_wave_cooldown <= 0.0 and boss_wave_timer <= 0.0 and boss_windup <= 0.0:
 		boss_wave_timer = 0.72
+		camera_shake = 0.22
+		camera_shake_strength = 4.0
 		boss_wave_radius = 0.0
 		boss_wave_hit = false
 		boss_wave_cooldown = 5.5
@@ -319,6 +331,9 @@ func _restart() -> void:
 	boss_wave_radius = 0.0
 	boss_wave_hit = false
 	boss_wave_cooldown = 0.0
+	camera_shake = 0.0
+	camera_shake_strength = 0.0
+	phase_burst_timer = 0.0
 	arena_time = 0.0
 	hero_trail_timer = 0.0
 	footstep_timer = 0.0
@@ -363,8 +378,13 @@ func _input(event: InputEvent) -> void:
 		var center := Vector2(100.0, screen_size.y - 90.0)
 		touch_direction = ((event.position - center) / 52.0).limit_length(1.0)
 
+	# Rendering remains in world coordinates; translate the canvas for short impact shake.
+
 func _draw() -> void:
 	var screen_size := get_viewport_rect().size
+	if camera_shake > 0.0:
+		var shake_offset := Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * camera_shake_strength * (camera_shake / 0.7)
+		draw_set_transform(shake_offset, 0.0, Vector2.ONE)
 	draw_rect(Rect2(Vector2.ZERO, screen_size), Color("#090713"), true)
 	var abyss_phase := boss_hp <= 150
 	var floor_tint := Color("#1b0b20") if abyss_phase else Color("#151025")
@@ -376,6 +396,16 @@ func _draw() -> void:
 		var tower_base := ARENA.position.y + 20.0
 		draw_colored_polygon(PackedVector2Array([Vector2(tower_x - 18, tower_base), Vector2(tower_x - 11, tower_base - tower_height), Vector2(tower_x, tower_base - tower_height - 17), Vector2(tower_x + 11, tower_base - tower_height), Vector2(tower_x + 18, tower_base)]), Color(0.035, 0.018, 0.065, 0.92))
 		draw_line(Vector2(tower_x, tower_base - tower_height - 12), Vector2(tower_x, tower_base - tower_height + 7), Color(0.63, 0.22, 0.78, 0.30), 2.0)
+	# Phase transition: a pulsing eclipse flash and radial energy spokes.
+	if phase_burst_timer > 0.0:
+		var burst_progress := 1.0 - phase_burst_timer / 1.15
+		var burst_radius := 30.0 + burst_progress * 390.0
+		var burst_alpha := (phase_burst_timer / 1.15) * 0.42
+		draw_circle(boss_pos, burst_radius, Color(1.0, 0.12, 0.52, burst_alpha * 0.12), true)
+		draw_arc(boss_pos, burst_radius, 0.0, TAU, 96, Color(1.0, 0.22, 0.67, burst_alpha), 4.0)
+		for burst_ray in range(28):
+			var burst_angle := TAU * float(burst_ray) / 28.0 + arena_time * 0.8
+			draw_line(boss_pos + Vector2.RIGHT.rotated(burst_angle) * (burst_radius * 0.72), boss_pos + Vector2.RIGHT.rotated(burst_angle) * (burst_radius + 18.0), Color(0.86, 0.24, 1.0, burst_alpha), 2.0)
 	# Layered obsidian floor: fine grid, central ritual seal, and animated runes.
 	for x in range(int(ARENA.position.x), int(ARENA.end.x), 48):
 		draw_line(Vector2(x, ARENA.position.y), Vector2(x, ARENA.end.y), Color(0.38, 0.22, 0.58, 0.16), 1.0)
@@ -572,3 +602,4 @@ func _draw_button(center: Vector2, label: String, color: Color) -> void:
 	draw_circle(center, 35.0, Color(color.r, color.g, color.b, 0.22))
 	draw_circle(center, 29.0, color, false, 3.0)
 	draw_string(ThemeDB.fallback_font, center + Vector2(-34, 5), label, HORIZONTAL_ALIGNMENT_CENTER, 68, 10, Color.WHITE)
+
