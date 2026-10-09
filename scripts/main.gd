@@ -355,11 +355,10 @@ func _draw() -> void:
 		draw_string(ThemeDB.fallback_font, Vector2(0, screen_size.y * 0.52), "TAP TO PLAY AGAIN  |  PRESS R", HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 16, Color("#bca5d8"))
 
 func draw_ellipse_shadow(center: Vector2, radii: Vector2, color: Color) -> void:
-	# Lightweight ellipse made from layered circles for a soft ground shadow.
-	for i in range(5, 0, -1):
-		var scale := float(i) / 5.0
-		draw_circle(center, radii.x * scale, Color(color.r, color.g, color.b, color.a * (1.0 - scale * 0.55)))
-		draw_circle(center + Vector2(0, 0), radii.y * scale, Color(color.r, color.g, color.b, 0.0))
+	# Draw a flattened shadow under the sprite, then restore the normal canvas transform.
+	draw_set_transform(center, 0.0, Vector2(1.0, radii.y / maxf(radii.x, 1.0)))
+	draw_circle(Vector2.ZERO, radii.x, color)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _draw_bar(pos: Vector2, width: float, height: float, ratio: float, fill: Color) -> void:
 	draw_rect(Rect2(pos, Vector2(width, height)), Color("#342840"), true)
