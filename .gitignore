@@ -1,0 +1,10 @@
+# Godot generated data
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.tmp
