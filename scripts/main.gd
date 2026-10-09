@@ -366,8 +366,16 @@ func _input(event: InputEvent) -> void:
 func _draw() -> void:
 	var screen_size := get_viewport_rect().size
 	draw_rect(Rect2(Vector2.ZERO, screen_size), Color("#090713"), true)
-	draw_rect(ARENA, Color("#151025"), true)
-
+	var abyss_phase := boss_hp <= 150
+	var floor_tint := Color("#1b0b20") if abyss_phase else Color("#151025")
+	draw_rect(ARENA, floor_tint, true)
+	# Distant cathedral silhouettes frame the duel without covering the fighters.
+	for tower_index in range(7):
+		var tower_x := ARENA.position.x + 58.0 + float(tower_index) * 130.0
+		var tower_height := 42.0 + float((tower_index * 37) % 56)
+		var tower_base := ARENA.position.y + 20.0
+		draw_colored_polygon(PackedVector2Array([Vector2(tower_x - 18, tower_base), Vector2(tower_x - 11, tower_base - tower_height), Vector2(tower_x, tower_base - tower_height - 17), Vector2(tower_x + 11, tower_base - tower_height), Vector2(tower_x + 18, tower_base)]), Color(0.035, 0.018, 0.065, 0.92))
+		draw_line(Vector2(tower_x, tower_base - tower_height - 12), Vector2(tower_x, tower_base - tower_height + 7), Color(0.63, 0.22, 0.78, 0.30), 2.0)
 	# Layered obsidian floor: fine grid, central ritual seal, and animated runes.
 	for x in range(int(ARENA.position.x), int(ARENA.end.x), 48):
 		draw_line(Vector2(x, ARENA.position.y), Vector2(x, ARENA.end.y), Color(0.38, 0.22, 0.58, 0.16), 1.0)
@@ -398,8 +406,26 @@ func _draw() -> void:
 		draw_circle(Vector2(ember_x, ember_y), 1.5 + ember_blink, Color(0.68, 0.45, 1.0, ember_blink))
 
 	for pillar in [Vector2(95, 100), Vector2(865, 100), Vector2(95, 440), Vector2(865, 440)]:
-		draw_circle(pillar, 18.0, Color("#302047"))
+		draw_circle(pillar, 24.0, Color("#302047"))
 		draw_circle(pillar, 18.0, Color("#a66bff"), false, 2.0)
+		draw_line(pillar + Vector2(-12, -10), pillar + Vector2(0, -29), Color("#d35cff"), 3.0)
+		draw_line(pillar + Vector2(0, -29), pillar + Vector2(12, -10), Color("#d35cff"), 3.0)
+	# Floating rune shards orbit the arena seal, brightening when the Empress enrages.
+	for shard_index in range(16):
+		var shard_angle := TAU * float(shard_index) / 16.0 - arena_time * (0.12 if abyss_phase else 0.055)
+		var shard_radius := 176.0 + sin(arena_time * 1.7 + float(shard_index)) * 5.0
+		var shard_pos := seal_center + Vector2.RIGHT.rotated(shard_angle) * shard_radius
+		var shard_color := Color("#ff347e") if abyss_phase else Color("#a75bff")
+		draw_colored_polygon(PackedVector2Array([shard_pos + Vector2(0, -5), shard_pos + Vector2(3, 0), shard_pos + Vector2(0, 5), shard_pos + Vector2(-3, 0)]), shard_color)
+	# The boss's eclipse halo expands during the second phase.
+	var eclipse_center := boss_pos + Vector2(0, -49)
+	var eclipse_radius := 43.0 if not abyss_phase else 55.0 + sin(arena_time * 3.0) * 3.0
+	draw_arc(eclipse_center, eclipse_radius, 0.0, TAU, 64, Color(0.95, 0.22, 0.70, 0.28 if not abyss_phase else 0.52), 2.0)
+	for ray_index in range(12):
+		var ray_angle := TAU * float(ray_index) / 12.0 + arena_time * 0.12
+		var ray_start := eclipse_center + Vector2.RIGHT.rotated(ray_angle) * (eclipse_radius + 3.0)
+		var ray_end := eclipse_center + Vector2.RIGHT.rotated(ray_angle) * (eclipse_radius + (13.0 if abyss_phase else 8.0))
+		draw_line(ray_start, ray_end, Color("#ff5acb") if abyss_phase else Color("#b95cff"), 1.5)
 
 	if hit_flash > 0.0 and hurt_cooldown > 0.0:
 		draw_circle(player_pos, 39.0, Color(1.0, 0.15, 0.25, 0.25))
