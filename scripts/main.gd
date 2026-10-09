@@ -42,6 +42,8 @@ var orb_windup := 0.0
 var orb_cooldown := 0.0
 var boss_orbs: Array[Dictionary] = []
 var hit_particles: Array[Dictionary] = []
+var boss_strike_timer := 0.0
+var boss_hit_flash := 0.0
 
 func _process(delta: float) -> void:
 	if game_over:
@@ -54,6 +56,8 @@ func _process(delta: float) -> void:
 	message_time = maxf(0.0, message_time - delta)
 	boss_attack_cooldown = maxf(0.0, boss_attack_cooldown - delta)
 	hit_flash = maxf(0.0, hit_flash - delta)
+	boss_hit_flash = maxf(0.0, boss_hit_flash - delta)
+	boss_strike_timer = maxf(0.0, boss_strike_timer - delta)
 	dash_timer = maxf(0.0, dash_timer - delta)
 	dash_cooldown = maxf(0.0, dash_cooldown - delta)
 	slash_timer = maxf(0.0, slash_timer - delta)
@@ -126,7 +130,11 @@ func _update_boss(delta: float) -> void:
 	if boss_windup > 0.0:
 		boss_windup = maxf(0.0, boss_windup - delta)
 		if boss_windup == 0.0:
-			if player_pos.distance_to(boss_pos) <= (145.0 if phase_two else 120.0):
+			var strike_direction := to_player.normalized() if distance > 0.01 else Vector2.LEFT
+			boss_strike_timer = 0.30
+			boss_pos += strike_direction * 18.0
+			_spawn_particles(boss_pos, Color("#ff367e") if phase_two else Color("#b95cff"), 10, 95.0)
+			if player_pos.distance_to(boss_pos) <= (155.0 if phase_two else 128.0):
 				_damage_player(18 if phase_two else 12)
 			boss_attack_cooldown = 1.35 if phase_two else 1.8
 	elif distance > 92.0:
@@ -197,6 +205,7 @@ func _do_attack() -> void:
 	var to_boss := boss_pos - player_pos
 	if to_boss.length() <= 118.0 and (to_boss.length() < 0.01 or facing.dot(to_boss.normalized()) > -0.25):
 		boss_hp = maxi(0, boss_hp - 18)
+		boss_hit_flash = 0.22
 		_spawn_particles(boss_pos, Color("#9bf3ff"), 18, 190.0)
 		hit_flash = 0.18
 		message = "DARK SLASH  -18"
@@ -210,6 +219,7 @@ func _do_skill() -> void:
 	nova_timer = 0.42
 	if player_pos.distance_to(boss_pos) <= 230.0:
 		boss_hp = maxi(0, boss_hp - 42)
+		boss_hit_flash = 0.28
 		_spawn_particles(boss_pos, Color("#d55cff"), 28, 230.0)
 		hit_flash = 0.24
 		message = "ABYSS NOVA  -42"
@@ -248,6 +258,8 @@ func _restart() -> void:
 	orb_cooldown = 0.0
 	boss_orbs.clear()
 	hit_particles.clear()
+	boss_strike_timer = 0.0
+	boss_hit_flash = 0.0
 	facing = Vector2.RIGHT
 	game_over = false
 	victory = false
@@ -312,7 +324,8 @@ func _draw() -> void:
 		draw_circle(player_pos, 230.0 * nova_progress, Color(0.78, 0.20, 1.0, 0.18), true)
 		draw_circle(player_pos, 230.0 * nova_progress, Color(0.88, 0.48, 1.0, 0.8), false, 4.0)
 	if slash_timer > 0.0:
-		draw_arc(player_pos + facing * 22.0, 48.0, facing.angle() - 1.0, facing.angle() + 1.0, 18, Color(0.75, 0.93, 1.0, 0.95), 7.0)
+		var slash_progress := slash_timer / 0.20
+		draw_arc(player_pos + facing * 22.0, 48.0 + (1.0 - slash_progress) * 14.0, facing.angle() - 1.15, facing.angle() + 1.15, 22, Color(0.75, 0.93, 1.0, slash_progress), 7.0)
 	# Hero sprite: subtle idle bob and a shadow keep the character grounded.
 	var hero_bob := sin(Time.get_ticks_msec() * 0.006) * 2.2
 	draw_ellipse_shadow(player_pos + Vector2(0, 25), Vector2(24, 8), Color(0.02, 0.01, 0.06, 0.78))
@@ -341,8 +354,15 @@ func _draw() -> void:
 		var boss_bob := sin(Time.get_ticks_msec() * 0.0035 + 1.2) * 2.0
 		draw_ellipse_shadow(boss_pos + Vector2(0, 35), Vector2(38, 12), Color(0.02, 0.0, 0.05, 0.88))
 		draw_circle(boss_pos, 75.0, Color(boss_color.r, boss_color.g, boss_color.b, 0.10))
+		if boss_hit_flash > 0.0:
+			draw_circle(boss_pos, 62.0, Color(0.95, 0.85, 1.0, boss_hit_flash * 1.7))
 		if boss_windup > 0.0:
-			draw_circle(boss_pos, 76.0, Color("#ff3c75"), false, 4.0)
+			var charge_pulse := 3.0 + sin(Time.get_ticks_msec() * 0.025) * 2.0
+			draw_circle(boss_pos, 76.0 + charge_pulse, Color("#ff3c75"), false, 4.0)
+		if boss_strike_timer > 0.0:
+			var strike_fade := boss_strike_timer / 0.30
+			var strike_angle := (player_pos - boss_pos).angle()
+			draw_arc(boss_pos, 94.0 + (1.0 - strike_fade) * 24.0, strike_angle - 1.0, strike_angle + 1.0, 24, Color(1.0, 0.16, 0.52, strike_fade), 10.0)
 		var boss_rect := Rect2(boss_pos + Vector2(-64, -72 + boss_bob), Vector2(128, 128))
 		draw_texture_rect(AKTEYNT_TEXTURE, boss_rect, false)
 	else:
