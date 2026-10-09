@@ -15,6 +15,8 @@
 - Original transparent SVG artwork for the hero and Dark Lord Akteynt, with floating idle motion, ground shadows, and phase-colored glow.
 - Directional hero rotation and lightweight cyan/purple/pink particle bursts for dash, slash, skill, boss-orb launch, and damage impacts.
 - Animated boss attack telegraph, short forward strike lunge, expanding slash arc, and brief hit-flash reaction.
+- A layered obsidian arena with a glowing rotating ritual seal, rune marks, stone cracks, and ambient floating embers.
+- Hero movement afterimages during running and dashing, plus subtle footstep sparks; effects are drawn in-engine to stay lightweight on Android.
 
 ## Open on Android
 1. Download the repository as a ZIP and extract it to a new folder.
