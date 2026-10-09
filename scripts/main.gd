@@ -41,6 +41,7 @@ var nova_timer := 0.0
 var orb_windup := 0.0
 var orb_cooldown := 0.0
 var boss_orbs: Array[Dictionary] = []
+var hit_particles: Array[Dictionary] = []
 
 func _process(delta: float) -> void:
 	if game_over:
@@ -58,6 +59,9 @@ func _process(delta: float) -> void:
 	slash_timer = maxf(0.0, slash_timer - delta)
 	nova_timer = maxf(0.0, nova_timer - delta)
 	orb_cooldown = maxf(0.0, orb_cooldown - delta)
+	_update_hit_particles(delta)
+	if dash_timer > 0.0 and randf() < 0.8:
+		_spawn_particles(player_pos - dash_direction * 18.0, Color("#54dcff"), 2, 65.0)
 	if orb_windup > 0.0:
 		orb_windup = maxf(0.0, orb_windup - delta)
 		if orb_windup == 0.0:
@@ -137,6 +141,7 @@ func _spawn_boss_orb() -> void:
 		return
 	var direction := (player_pos - boss_pos).normalized()
 	boss_orbs.append({"pos": boss_pos, "velocity": direction * 230.0, "life": 3.0})
+	_spawn_particles(boss_pos, Color("#ce52ff"), 12, 120.0)
 	message = "DODGE THE ABYSS ORB!"
 	message_time = 0.8
 
@@ -148,6 +153,7 @@ func _update_boss_orbs(delta: float) -> void:
 		var life: float = float(orb["life"]) - delta
 		pos += velocity * delta
 		if pos.distance_to(player_pos) < 25.0:
+			_spawn_particles(pos, Color("#ed8bff"), 16, 170.0)
 			_damage_player(16)
 			boss_orbs.remove_at(i)
 		elif life <= 0.0 or not ARENA.has_point(pos):
@@ -163,6 +169,7 @@ func _damage_player(amount: int) -> void:
 	player_hp = maxi(0, player_hp - amount)
 	hurt_cooldown = 0.7
 	hit_flash = 0.25
+	_spawn_particles(player_pos, Color("#ff477e"), 14, 145.0)
 	message = "YOU TOOK %d DAMAGE" % amount
 	message_time = 0.8
 	if player_hp == 0:
@@ -178,6 +185,7 @@ func _do_dash(direction: Vector2) -> void:
 	dash_timer = DASH_DURATION
 	dash_cooldown = DASH_COOLDOWN
 	hit_flash = 0.12
+	_spawn_particles(player_pos, Color("#51ddff"), 10, 100.0)
 	message = "ABYSS STEP"
 	message_time = 0.35
 
@@ -189,6 +197,7 @@ func _do_attack() -> void:
 	var to_boss := boss_pos - player_pos
 	if to_boss.length() <= 118.0 and (to_boss.length() < 0.01 or facing.dot(to_boss.normalized()) > -0.25):
 		boss_hp = maxi(0, boss_hp - 18)
+		_spawn_particles(boss_pos, Color("#9bf3ff"), 18, 190.0)
 		hit_flash = 0.18
 		message = "DARK SLASH  -18"
 		message_time = 0.6
@@ -201,6 +210,7 @@ func _do_skill() -> void:
 	nova_timer = 0.42
 	if player_pos.distance_to(boss_pos) <= 230.0:
 		boss_hp = maxi(0, boss_hp - 42)
+		_spawn_particles(boss_pos, Color("#d55cff"), 28, 230.0)
 		hit_flash = 0.24
 		message = "ABYSS NOVA  -42"
 		message_time = 0.9
@@ -237,6 +247,7 @@ func _restart() -> void:
 	orb_windup = 0.0
 	orb_cooldown = 0.0
 	boss_orbs.clear()
+	hit_particles.clear()
 	facing = Vector2.RIGHT
 	game_over = false
 	victory = false
@@ -307,8 +318,16 @@ func _draw() -> void:
 	draw_ellipse_shadow(player_pos + Vector2(0, 25), Vector2(24, 8), Color(0.02, 0.01, 0.06, 0.78))
 	if hit_flash > 0.0 and hurt_cooldown > 0.0:
 		draw_circle(player_pos, 42.0, Color(1.0, 0.15, 0.25, 0.22))
-	var hero_rect := Rect2(player_pos + Vector2(-42, -49 + hero_bob), Vector2(84, 84))
-	draw_texture_rect(HERO_TEXTURE, hero_rect, false)
+	draw_set_transform(player_pos + Vector2(0, hero_bob), facing.angle(), Vector2.ONE)
+	draw_texture_rect(HERO_TEXTURE, Rect2(-42, -42, 84, 84), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+	# Tiny particles make dashes and hits feel responsive without heavy assets.
+	for particle in hit_particles:
+		var p: Vector2 = particle["pos"]
+		var color: Color = particle["color"]
+		var life_ratio := clampf(float(particle["life"]) / float(particle["max_life"]), 0.0, 1.0)
+		draw_circle(p, float(particle["size"]) * life_ratio, Color(color.r, color.g, color.b, life_ratio))
 
 	for orb in boss_orbs:
 		var orb_pos: Vector2 = orb["pos"]
@@ -353,6 +372,31 @@ func _draw() -> void:
 		var headline := "VICTORY" if victory else "DEFEATED"
 		draw_string(ThemeDB.fallback_font, Vector2(0, screen_size.y * 0.43), headline, HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 34, Color("#f0d7ff"))
 		draw_string(ThemeDB.fallback_font, Vector2(0, screen_size.y * 0.52), "TAP TO PLAY AGAIN  |  PRESS R", HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 16, Color("#bca5d8"))
+
+func _spawn_particles(origin: Vector2, color: Color, count: int, power: float) -> void:
+	for i in range(count):
+		var angle := randf_range(0.0, TAU)
+		var speed := randf_range(power * 0.25, power)
+		var lifetime := randf_range(0.18, 0.48)
+		hit_particles.append({
+			"pos": origin + Vector2(randf_range(-5.0, 5.0), randf_range(-5.0, 5.0)),
+			"velocity": Vector2.RIGHT.rotated(angle) * speed,
+			"life": lifetime,
+			"max_life": lifetime,
+			"color": color,
+			"size": randf_range(2.0, 5.0)
+		})
+
+func _update_hit_particles(delta: float) -> void:
+	for i in range(hit_particles.size() - 1, -1, -1):
+		var particle: Dictionary = hit_particles[i]
+		particle["pos"] = (particle["pos"] as Vector2) + (particle["velocity"] as Vector2) * delta
+		particle["velocity"] = (particle["velocity"] as Vector2) * 0.90
+		particle["life"] = float(particle["life"]) - delta
+		if float(particle["life"]) <= 0.0:
+			hit_particles.remove_at(i)
+		else:
+			hit_particles[i] = particle
 
 func draw_ellipse_shadow(center: Vector2, radii: Vector2, color: Color) -> void:
 	# Draw a flattened shadow under the sprite, then restore the normal canvas transform.
