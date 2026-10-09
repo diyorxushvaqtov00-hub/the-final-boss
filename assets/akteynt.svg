@@ -1,37 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
 <defs>
- <radialGradient id="a"><stop stop-color="#ff287f" stop-opacity=".55"/><stop offset="1" stop-color="#7d16b9" stop-opacity="0"/></radialGradient>
- <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6d238e"/><stop offset=".45" stop-color="#2b124e"/><stop offset="1" stop-color="#10091f"/></linearGradient>
- <linearGradient id="horn" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0ff"/><stop offset=".4" stop-color="#c78aff"/><stop offset="1" stop-color="#5b237d"/></linearGradient>
- <linearGradient id="cape" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#6e164f"/><stop offset="1" stop-color="#180923"/></linearGradient>
+ <radialGradient id="halo"><stop stop-color="#ff287f" stop-opacity=".55"/><stop offset=".55" stop-color="#a21cff" stop-opacity=".18"/><stop offset="1" stop-color="#180525" stop-opacity="0"/></radialGradient>
+ <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0ff"/><stop offset=".22" stop-color="#bba0c9"/><stop offset=".55" stop-color="#48304f"/><stop offset="1" stop-color="#100817"/></linearGradient>
+ <linearGradient id="dress" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#a72b91"/><stop offset=".35" stop-color="#37113f"/><stop offset=".78" stop-color="#12091e"/><stop offset="1" stop-color="#05040b"/></linearGradient>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0ff"/><stop offset=".25" stop-color="#d48cff"/><stop offset=".6" stop-color="#63268a"/><stop offset="1" stop-color="#1a0a2b"/></linearGradient>
+ <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0f3"/><stop offset=".55" stop-color="#d2a9c9"/><stop offset="1" stop-color="#7d527f"/></linearGradient>
  <filter id="glow"><feGaussianBlur stdDeviation="5"/></filter>
 </defs>
-<ellipse cx="80" cy="126" rx="49" ry="19" fill="#b32cff" opacity=".35" filter="url(#glow)"/>
-<ellipse cx="80" cy="128" rx="38" ry="10" fill="#08040f" opacity=".85"/>
-<!-- crown horns -->
-<path d="M46 49 Q20 29 28 7 Q44 20 57 39 L65 34 80 43 95 34 103 39 Q116 18 133 8 Q139 33 114 51Z" fill="url(#horn)" stroke="#f2c9ff" stroke-width="2"/>
-<path d="M43 43 L33 19 53 42 M117 43 L129 20 106 42" fill="none" stroke="#fff0ff" stroke-width="2"/>
-<!-- cape -->
-<path d="M49 64 Q26 72 23 118 L48 108 62 138 80 121 98 138 112 108 137 118 Q133 75 111 64Z" fill="url(#cape)" stroke="#a52bd3" stroke-width="2"/>
-<path d="M48 72 L38 110 58 102 70 128 80 109 90 128 102 102 122 110 112 72Z" fill="#261039"/>
-<!-- shoulder spikes -->
-<path d="M49 65 L26 53 36 78 21 85 53 91Z M111 65 L134 53 124 78 139 85 107 91Z" fill="#54216e" stroke="#d66bff" stroke-width="2"/>
-<!-- neck -->
-<path d="M67 57 L67 70 93 70 93 57Z" fill="#5c2a73"/>
-<!-- face -->
-<path d="M48 33 L112 33 108 62 Q102 82 80 86 Q58 82 52 62Z" fill="#c7a2d7" stroke="#f0caff" stroke-width="2"/>
-<!-- hair/crown shadow -->
-<path d="M45 44 Q39 23 62 22 L80 27 98 21 Q119 26 115 47 L105 42 98 52 91 42 80 47 69 42 59 53 53 43Z" fill="#170d2b" stroke="#a45dc7" stroke-width="2"/>
-<!-- glowing eyes -->
-<path d="M55 53 L73 56 65 62Z M87 56 L105 53 95 62Z" fill="#ff267e"/>
-<path d="M59 55 L68 57 M92 57 L101 55" stroke="#fff4ff" stroke-width="2"/>
-<path d="M75 66 L80 71 85 66" fill="none" stroke="#6e2b78" stroke-width="2"/>
-<!-- chest armor -->
-<path d="M54 75 L80 88 106 75 99 108 80 119 61 108Z" fill="url(#armor)" stroke="#d55bff" stroke-width="2.5"/>
-<path d="M80 89 L91 101 80 112 69 101Z" fill="#ff287f" stroke="#ffc0f7" stroke-width="2"/>
-<path d="M80 92 L84 101 80 107 76 101Z" fill="#fff4ff"/>
-<!-- armor ribs -->
-<path d="M58 83 L69 94 M102 83 L91 94 M62 105 L72 111 M98 105 L88 111" stroke="#a650cf" stroke-width="2"/>
-<!-- arm blades -->
-<path d="M34 82 L21 103 42 96 48 110 55 91Z M126 82 L139 103 118 96 112 110 105 91Z" fill="#3b1758" stroke="#c44df0" stroke-width="2"/>
+<circle cx="128" cy="89" r="91" fill="url(#halo)"/>
+<!-- fractured eclipse crown -->
+<g fill="none" stroke-linecap="round">
+ <circle cx="128" cy="68" r="61" stroke="#7f22a8" stroke-width="2" opacity=".9"/>
+ <circle cx="128" cy="68" r="72" stroke="#ee45ca" stroke-width="1.5" stroke-dasharray="2 9" opacity=".9"/>
+ <path d="M75 104 Q35 47 67 15 Q76 45 97 49 M181 104 Q221 47 189 15 Q180 45 159 49" stroke="#f1b7ff" stroke-width="3"/>
+ <path d="M83 79 L47 36 M91 59 L84 8 M173 79 L209 36 M165 59 L172 8 M104 31 L94 14 M152 31 L162 14" stroke="#d94cff" stroke-width="2"/>
+ <path d="M67 15 L72 38 58 31 M189 15 L184 38 198 31" stroke="#fff0ff" stroke-width="2"/>
+</g>
+<!-- hair mantle behind body -->
+<path d="M104 66 Q77 77 65 122 L38 178 65 166 52 219 91 183 104 237 128 199 151 237 164 183 204 219 191 166 218 178 191 122 Q179 77 152 66Z" fill="url(#hair)" stroke="#a74bc4" stroke-width="2"/>
+<path d="M99 81 Q78 117 81 170 L66 200 M157 81 Q178 117 175 170 L190 200 M116 94 L99 178 110 210 M140 94 L157 178 146 210" fill="none" stroke="#f5c9ff" stroke-width="2" opacity=".7"/>
+<!-- regal spiked shoulders and trailing sleeves -->
+<path d="M97 115 L57 93 72 127 45 139 89 151Z M159 115 L199 93 184 127 211 139 167 151Z" fill="url(#metal)" stroke="#ed9cff" stroke-width="2"/>
+<path d="M89 119 L53 166 85 153 102 176 M167 119 L203 166 171 153 154 176" fill="#25102f" stroke="#c94ce6" stroke-width="2"/>
+<!-- face, jaw and hair framing -->
+<path d="M99 48 Q128 33 157 48 L153 91 Q145 111 128 115 Q111 111 103 91Z" fill="url(#skin)" stroke="#f4d7ff" stroke-width="1.5"/>
+<path d="M92 66 Q84 34 111 27 L128 32 145 26 Q171 34 164 68 L151 57 145 73 134 60 122 71 109 60 101 78Z" fill="#17101f" stroke="#b86ad5" stroke-width="2"/>
+<path d="M98 49 Q106 34 120 43 L128 53 136 42 Q151 34 159 49 L151 70 139 61 128 68 116 61 104 71Z" fill="url(#hair)"/>
+<path d="M103 79 L122 82 114 89Z M134 82 L153 79 142 89Z" fill="#ff287f"/>
+<path d="M108 80 L118 82 M138 82 L148 80" stroke="#fff5ff" stroke-width="2"/>
+<path d="M126 86 L128 94 132 91" fill="none" stroke="#81517f" stroke-width="1.5"/>
+<path d="M119 101 Q128 105 137 101" fill="none" stroke="#a82c86" stroke-width="1.5"/>
+<!-- crown jewel -->
+<path d="M128 36 L135 45 128 54 121 45Z" fill="#ff3cbb" stroke="#fff0ff" stroke-width="1.5"/>
+<!-- corset and layered abyss gown -->
+<path d="M100 112 L128 125 156 112 170 163 153 190 128 177 103 190 86 163Z" fill="url(#dress)" stroke="#d84be9" stroke-width="2.5"/>
+<path d="M109 119 L128 131 147 119 143 156 128 171 113 156Z" fill="#120a20" stroke="#8c38b4" stroke-width="2"/>
+<path d="M128 132 L139 146 128 160 117 146Z" fill="#ff2e9b" stroke="#ffe5ff" stroke-width="2"/>
+<path d="M128 136 L132 146 128 153 124 146Z" fill="#fff4ff"/>
+<path d="M100 125 L82 158 102 150 M156 125 L174 158 154 150" fill="none" stroke="#f4a5ff" stroke-width="3"/>
+<path d="M104 174 L79 222 105 207 116 242 128 218 140 242 151 207 177 222 152 174" fill="#0b0712" stroke="#7f2eaa" stroke-width="2"/>
+<path d="M108 184 L96 218 M148 184 L160 218 M128 180 L128 238" stroke="#e63bba" stroke-width="2" opacity=".9"/>
+<!-- floating blade shards -->
+<g fill="url(#metal)" stroke="#ff9bf1" stroke-width="1.5">
+ <path d="M40 105 L23 138 42 129 50 114Z"/><path d="M216 105 L233 138 214 129 206 114Z"/>
+ <path d="M56 193 L35 224 59 211Z"/><path d="M200 193 L221 224 197 211Z"/>
+</g>
+<!-- luminous hem runes -->
+<g fill="none" stroke="#ff3bba" stroke-width="2">
+ <path d="M77 229 l7 -7 7 7 -7 7Z M165 229 l7 -7 7 7 -7 7Z"/>
+ <path d="M113 222 l5 -9 5 9 M133 222 l5 -9 5 9"/>
+</g>
 </svg>
