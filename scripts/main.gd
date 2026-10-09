@@ -2,6 +2,9 @@ extends Node2D
 
 const ARENA := Rect2(32, 48, 896, 444)
 const PLAYER_SPEED := 240.0
+const DASH_SPEED := 690.0
+const DASH_DURATION := 0.16
+const DASH_COOLDOWN := 1.6
 const BOSS_SPEED_PHASE_ONE := 78.0
 const BOSS_SPEED_PHASE_TWO := 112.0
 const PLAYER_MAX_HP := 100
@@ -27,6 +30,12 @@ var boss_windup := 0.0
 var boss_attack_cooldown := 0.0
 var hit_flash := 0.0
 var phase_two_announced := false
+var dash_timer := 0.0
+var dash_cooldown := 0.0
+var dash_direction := Vector2.RIGHT
+var dash_requested := false
+var slash_timer := 0.0
+var nova_timer := 0.0
 
 func _process(delta: float) -> void:
 	if game_over:
@@ -39,6 +48,10 @@ func _process(delta: float) -> void:
 	message_time = maxf(0.0, message_time - delta)
 	boss_attack_cooldown = maxf(0.0, boss_attack_cooldown - delta)
 	hit_flash = maxf(0.0, hit_flash - delta)
+	dash_timer = maxf(0.0, dash_timer - delta)
+	dash_cooldown = maxf(0.0, dash_cooldown - delta)
+	slash_timer = maxf(0.0, slash_timer - delta)
+	nova_timer = maxf(0.0, nova_timer - delta)
 
 	var direction := Vector2.ZERO
 	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
@@ -56,7 +69,13 @@ func _process(delta: float) -> void:
 	if direction.length() > 0.05:
 		facing = direction.normalized()
 
-	player_pos += direction * PLAYER_SPEED * delta
+	if Input.is_key_pressed(KEY_SHIFT) or dash_requested:
+		_do_dash(direction)
+	dash_requested = false
+	if dash_timer > 0.0:
+		player_pos += dash_direction * DASH_SPEED * delta
+	else:
+		player_pos += direction * PLAYER_SPEED * delta
 	player_pos.x = clampf(player_pos.x, ARENA.position.x + 22.0, ARENA.end.x - 22.0)
 	player_pos.y = clampf(player_pos.y, ARENA.position.y + 22.0, ARENA.end.y - 22.0)
 
@@ -98,7 +117,7 @@ func _update_boss(delta: float) -> void:
 		message_time = 0.55
 
 func _damage_player(amount: int) -> void:
-	if hurt_cooldown > 0.0 or game_over:
+	if hurt_cooldown > 0.0 or dash_timer > 0.0 or game_over:
 		return
 	player_hp = maxi(0, player_hp - amount)
 	hurt_cooldown = 0.7
@@ -111,10 +130,21 @@ func _damage_player(amount: int) -> void:
 		message = "YOU HAVE FALLEN"
 		message_time = 999.0
 
+func _do_dash(direction: Vector2) -> void:
+	if dash_cooldown > 0.0 or game_over:
+		return
+	dash_direction = direction.normalized() if direction.length() > 0.05 else facing
+	dash_timer = DASH_DURATION
+	dash_cooldown = DASH_COOLDOWN
+	hit_flash = 0.12
+	message = "ABYSS STEP"
+	message_time = 0.35
+
 func _do_attack() -> void:
 	if attack_cooldown > 0.0 or boss_hp <= 0 or game_over:
 		return
 	attack_cooldown = 0.42
+	slash_timer = 0.20
 	var to_boss := boss_pos - player_pos
 	if to_boss.length() <= 118.0 and (to_boss.length() < 0.01 or facing.dot(to_boss.normalized()) > -0.25):
 		boss_hp = maxi(0, boss_hp - 18)
@@ -127,6 +157,7 @@ func _do_skill() -> void:
 	if skill_cooldown > 0.0 or boss_hp <= 0 or game_over:
 		return
 	skill_cooldown = 4.0
+	nova_timer = 0.42
 	if player_pos.distance_to(boss_pos) <= 230.0:
 		boss_hp = maxi(0, boss_hp - 42)
 		hit_flash = 0.24
@@ -155,6 +186,12 @@ func _restart() -> void:
 	boss_windup = 0.0
 	boss_attack_cooldown = 0.0
 	hit_flash = 0.0
+	dash_timer = 0.0
+	dash_cooldown = 0.0
+	dash_direction = Vector2.RIGHT
+	slash_timer = 0.0
+	nova_timer = 0.0
+	dash_requested = false
 	phase_two_announced = false
 	facing = Vector2.RIGHT
 	game_over = false
@@ -181,8 +218,10 @@ func _input(event: InputEvent) -> void:
 				move_touch_id = event.index
 				var center := Vector2(100.0, screen_size.y - 90.0)
 				touch_direction = ((event.position - center) / 52.0).limit_length(1.0)
-			elif event.position.x > screen_size.x * 0.72 and event.position.y > screen_size.y * 0.60:
-				if event.position.x > screen_size.x * 0.86:
+			elif event.position.x > screen_size.x * 0.70 and event.position.y > screen_size.y * 0.60:
+				if event.position.x > screen_size.x * 0.92:
+					dash_requested = true
+				elif event.position.x > screen_size.x * 0.83:
 					skill_requested = true
 				else:
 					attack_requested = true
@@ -211,6 +250,14 @@ func _draw() -> void:
 
 	if hit_flash > 0.0 and hurt_cooldown > 0.0:
 		draw_circle(player_pos, 39.0, Color(1.0, 0.15, 0.25, 0.25))
+	if dash_timer > 0.0:
+		draw_line(player_pos - dash_direction * 46.0, player_pos - dash_direction * 12.0, Color(0.35, 0.82, 1.0, 0.75), 8.0)
+	if nova_timer > 0.0:
+		var nova_progress := 1.0 - nova_timer / 0.42
+		draw_circle(player_pos, 230.0 * nova_progress, Color(0.78, 0.20, 1.0, 0.18), true)
+		draw_circle(player_pos, 230.0 * nova_progress, Color(0.88, 0.48, 1.0, 0.8), false, 4.0)
+	if slash_timer > 0.0:
+		draw_arc(player_pos + facing * 22.0, 48.0, facing.angle() - 1.0, facing.angle() + 1.0, 18, Color(0.75, 0.93, 1.0, 0.95), 7.0)
 	draw_circle(player_pos, 34.0, Color(0.22, 0.65, 1.0, 0.12))
 	draw_circle(player_pos, 21.0, Color("#4bc7ff"))
 	draw_circle(player_pos + Vector2(0, -5), 9.0, Color("#d8f5ff"))
@@ -247,9 +294,11 @@ func _draw() -> void:
 	draw_circle(Vector2(100, screen_size.y - 90), 54.0, Color(0.45, 0.35, 0.65, 0.20))
 	draw_circle(Vector2(100, screen_size.y - 90), 54.0, Color(0.72, 0.55, 1.0, 0.7), false, 2.0)
 	draw_string(ThemeDB.fallback_font, Vector2(48, screen_size.y - 84), "MOVE", HORIZONTAL_ALIGNMENT_CENTER, 104, 13, Color.WHITE)
-	_draw_button(Vector2(screen_size.x - 164, screen_size.y - 104), "ATTACK", Color("#8e37c7"))
-	_draw_button(Vector2(screen_size.x - 78, screen_size.y - 104), "SKILL", Color("#bd267f"))
-	draw_string(ThemeDB.fallback_font, Vector2(20, screen_size.y - 14), "PC: WASD/ARROWS move | SPACE attack | E skill | R restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("#b6a8c9"))
+	_draw_button(Vector2(screen_size.x - 220, screen_size.y - 104), "ATTACK", Color("#8e37c7"))
+	_draw_button(Vector2(screen_size.x - 135, screen_size.y - 104), "SKILL", Color("#bd267f"))
+	_draw_button(Vector2(screen_size.x - 55, screen_size.y - 104), "DASH", Color("#2a9bd6"))
+	draw_string(ThemeDB.fallback_font, Vector2(screen_size.x - 258, screen_size.y - 52), "Skill: %.1fs   Dash: %.1fs" % [skill_cooldown, dash_cooldown], HORIZONTAL_ALIGNMENT_LEFT, 250, 10, Color("#d7c4ef"))
+	draw_string(ThemeDB.fallback_font, Vector2(20, screen_size.y - 14), "PC: WASD/ARROWS move | SPACE attack | E skill | SHIFT dash | R restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("#b6a8c9"))
 
 	if game_over:
 		draw_rect(Rect2(Vector2.ZERO, screen_size), Color(0.02, 0.01, 0.05, 0.78), true)
