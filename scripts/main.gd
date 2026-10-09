@@ -56,7 +56,11 @@ func _process(delta: float) -> void:
 	slash_timer = maxf(0.0, slash_timer - delta)
 	nova_timer = maxf(0.0, nova_timer - delta)
 	orb_cooldown = maxf(0.0, orb_cooldown - delta)
-	orb_windup = maxf(0.0, orb_windup - delta)
+	if orb_windup > 0.0:
+		orb_windup = maxf(0.0, orb_windup - delta)
+		if orb_windup == 0.0:
+			_spawn_boss_orb()
+			orb_cooldown = 2.4
 
 	var direction := Vector2.ZERO
 	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
@@ -113,9 +117,6 @@ func _update_boss(delta: float) -> void:
 		orb_windup = 0.65
 		message = "AKTEYNT SUMMONS AN ABYSS ORB!"
 		message_time = 0.65
-	elif orb_windup > 0.0 and orb_windup <= 0.05:
-		_spawn_boss_orb()
-		orb_cooldown = 2.4
 	if boss_windup > 0.0:
 		boss_windup = maxf(0.0, boss_windup - delta)
 		if boss_windup == 0.0:
