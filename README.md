@@ -17,6 +17,8 @@
 - Animated boss attack telegraph, short forward strike lunge, expanding slash arc, and brief hit-flash reaction.
 - A layered obsidian arena with a glowing rotating ritual seal, rune marks, stone cracks, and ambient floating embers.
 - Hero movement afterimages during running and dashing, plus subtle footstep sparks; effects are drawn in-engine to stay lightweight on Android.
+- A three-hit melee combo with changing damage, reach, slash arc, and a stronger third finisher.
+- Phase-two Abyss Shockwave: a visible expanding ground ring that rewards timing a dash to evade it.
 
 ## Open on Android
 1. Download the repository as a ZIP and extract it to a new folder.
