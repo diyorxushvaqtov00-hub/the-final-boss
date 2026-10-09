@@ -12,6 +12,7 @@
 - Boss attacks have a visible wind-up cue so the player can try to dodge.
 - Victory, defeat, and restart states.
 - On-screen health bars and skill/dash cooldown labels.
+- Original transparent SVG artwork for the hero and Dark Lord Akteynt, with floating idle motion, ground shadows, and phase-colored glow.
 
 ## Open on Android
 1. Download the repository as a ZIP and extract it to a new folder.
@@ -36,11 +37,13 @@ The GitHub Actions workflow runs a headless Godot project check on pushes and pu
 ## Structure
 - `project.godot` — Godot project settings
 - `scenes/main.tscn` — main scene
-- `scripts/main.gd` — current prototype gameplay
+- `scripts/main.gd` — gameplay, controls, effects, and sprite rendering
+- `assets/hero.svg` — original hero character artwork
+- `assets/akteynt.svg` — original Dark Lord Akteynt artwork
 
 ## Roadmap
 1. Run automated project checks and confirm the updated build on Android.
-2. Replace placeholder circles with original character and boss sprites.
-3. Add animation states, sound effects, enemy patterns, and more arenas.
+2. Add multi-frame run/attack animations and sprite effects.
+3. Add sound effects, more enemy patterns, and additional arenas.
 4. Separate gameplay into reusable scenes and scripts.
 5. Set up a reproducible Android APK build.
