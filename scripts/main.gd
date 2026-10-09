@@ -44,12 +44,20 @@ var boss_orbs: Array[Dictionary] = []
 var hit_particles: Array[Dictionary] = []
 var boss_strike_timer := 0.0
 var boss_hit_flash := 0.0
+var arena_time := 0.0
+var hero_trail_timer := 0.0
+var footstep_timer := 0.0
+var hero_afterimages: Array[Dictionary] = []
 
 func _process(delta: float) -> void:
 	if game_over:
 		queue_redraw()
 		return
 
+	arena_time += delta
+	hero_trail_timer = maxf(0.0, hero_trail_timer - delta)
+	footstep_timer = maxf(0.0, footstep_timer - delta)
+	_update_hero_afterimages(delta)
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	skill_cooldown = maxf(0.0, skill_cooldown - delta)
 	hurt_cooldown = maxf(0.0, hurt_cooldown - delta)
@@ -92,8 +100,18 @@ func _process(delta: float) -> void:
 		_do_dash(direction)
 	dash_requested = false
 	if dash_timer > 0.0:
+		if hero_trail_timer <= 0.0:
+			hero_afterimages.append({"pos": player_pos, "facing": dash_direction.angle(), "life": 0.24, "max_life": 0.24})
+			hero_trail_timer = 0.035
 		player_pos += dash_direction * DASH_SPEED * delta
 	else:
+		if direction.length() > 0.1:
+			if hero_trail_timer <= 0.0:
+				hero_afterimages.append({"pos": player_pos, "facing": facing.angle(), "life": 0.14, "max_life": 0.14})
+				hero_trail_timer = 0.085
+			if footstep_timer <= 0.0:
+				_spawn_particles(player_pos + Vector2(0, 18), Color("#6c70ff"), 2, 28.0)
+				footstep_timer = 0.14
 		player_pos += direction * PLAYER_SPEED * delta
 	player_pos.x = clampf(player_pos.x, ARENA.position.x + 22.0, ARENA.end.x - 22.0)
 	player_pos.y = clampf(player_pos.y, ARENA.position.y + 22.0, ARENA.end.y - 22.0)
@@ -260,6 +278,10 @@ func _restart() -> void:
 	hit_particles.clear()
 	boss_strike_timer = 0.0
 	boss_hit_flash = 0.0
+	arena_time = 0.0
+	hero_trail_timer = 0.0
+	footstep_timer = 0.0
+	hero_afterimages.clear()
 	facing = Vector2.RIGHT
 	game_over = false
 	victory = false
@@ -305,11 +327,34 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, screen_size), Color("#090713"), true)
 	draw_rect(ARENA, Color("#151025"), true)
 
+	# Layered obsidian floor: fine grid, central ritual seal, and animated runes.
 	for x in range(int(ARENA.position.x), int(ARENA.end.x), 48):
 		draw_line(Vector2(x, ARENA.position.y), Vector2(x, ARENA.end.y), Color(0.38, 0.22, 0.58, 0.16), 1.0)
 	for y in range(int(ARENA.position.y), int(ARENA.end.y), 48):
 		draw_line(Vector2(ARENA.position.x, y), Vector2(ARENA.end.x, y), Color(0.38, 0.22, 0.58, 0.16), 1.0)
 	draw_rect(ARENA, Color("#9b5cff"), false, 3.0)
+	var seal_center := ARENA.position + ARENA.size * 0.5
+	var seal_pulse := 0.5 + 0.5 * sin(arena_time * 1.6)
+	draw_circle(seal_center, 154.0, Color(0.28, 0.08, 0.48, 0.05 + seal_pulse * 0.035), true)
+	draw_arc(seal_center, 150.0, 0.0, TAU, 120, Color(0.55, 0.25, 0.85, 0.22 + seal_pulse * 0.12), 2.0)
+	draw_arc(seal_center, 128.0, arena_time * 0.12, arena_time * 0.12 + TAU, 96, Color(0.25, 0.65, 1.0, 0.16), 1.5)
+	draw_arc(seal_center, 104.0, -arena_time * 0.18, -arena_time * 0.18 + TAU, 72, Color(0.72, 0.32, 1.0, 0.25), 2.0)
+	for rune_index in range(12):
+		var rune_angle := TAU * float(rune_index) / 12.0 + arena_time * 0.035
+		var rune_inner := seal_center + Vector2.RIGHT.rotated(rune_angle) * 112.0
+		var rune_outer := seal_center + Vector2.RIGHT.rotated(rune_angle + 0.035) * 137.0
+		draw_line(rune_inner, rune_outer, Color(0.68, 0.46, 1.0, 0.30 + seal_pulse * 0.20), 2.0)
+	# Broken stone seams and distant floating embers add depth without heavy textures.
+	for crack_index in range(7):
+		var crack_x := 145.0 + float(crack_index) * 112.0
+		var crack_y := 145.0 + float((crack_index * 67) % 230)
+		draw_line(Vector2(crack_x, crack_y), Vector2(crack_x + 12.0, crack_y + 9.0), Color(0.62, 0.38, 0.85, 0.16), 2.0)
+		draw_line(Vector2(crack_x + 12.0, crack_y + 9.0), Vector2(crack_x + 22.0, crack_y + 5.0), Color(0.62, 0.38, 0.85, 0.12), 1.0)
+	for ember_index in range(18):
+		var ember_x := 48.0 + float((ember_index * 137) % 860)
+		var ember_y := 58.0 + float((ember_index * 79) % 420)
+		var ember_blink := 0.20 + 0.30 * (0.5 + 0.5 * sin(arena_time * (1.2 + float(ember_index % 4) * 0.3) + float(ember_index)))
+		draw_circle(Vector2(ember_x, ember_y), 1.5 + ember_blink, Color(0.68, 0.45, 1.0, ember_blink))
 
 	for pillar in [Vector2(95, 100), Vector2(865, 100), Vector2(95, 440), Vector2(865, 440)]:
 		draw_circle(pillar, 18.0, Color("#302047"))
@@ -326,6 +371,14 @@ func _draw() -> void:
 	if slash_timer > 0.0:
 		var slash_progress := slash_timer / 0.20
 		draw_arc(player_pos + facing * 22.0, 48.0 + (1.0 - slash_progress) * 14.0, facing.angle() - 1.15, facing.angle() + 1.15, 22, Color(0.75, 0.93, 1.0, slash_progress), 7.0)
+	# Motion afterimages are drawn behind the hero, strongest during dash.
+	for ghost in hero_afterimages:
+		var ghost_pos: Vector2 = ghost["pos"]
+		var ghost_angle: float = float(ghost["facing"])
+		var ghost_alpha := clampf(float(ghost["life"]) / float(ghost["max_life"]), 0.0, 1.0) * 0.30
+		draw_set_transform(ghost_pos, ghost_angle, Vector2.ONE)
+		draw_texture_rect(HERO_TEXTURE, Rect2(-38, -38, 76, 76), false, Color(0.35, 0.78, 1.0, ghost_alpha))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Hero sprite: subtle idle bob and a shadow keep the character grounded.
 	var hero_bob := sin(Time.get_ticks_msec() * 0.006) * 2.2
 	draw_ellipse_shadow(player_pos + Vector2(0, 25), Vector2(24, 8), Color(0.02, 0.01, 0.06, 0.78))
@@ -406,6 +459,15 @@ func _spawn_particles(origin: Vector2, color: Color, count: int, power: float) -
 			"color": color,
 			"size": randf_range(2.0, 5.0)
 		})
+
+func _update_hero_afterimages(delta: float) -> void:
+	for i in range(hero_afterimages.size() - 1, -1, -1):
+		var ghost: Dictionary = hero_afterimages[i]
+		ghost["life"] = float(ghost["life"]) - delta
+		if float(ghost["life"]) <= 0.0:
+			hero_afterimages.remove_at(i)
+		else:
+			hero_afterimages[i] = ghost
 
 func _update_hit_particles(delta: float) -> void:
 	for i in range(hit_particles.size() - 1, -1, -1):
