@@ -14,6 +14,7 @@
 - On-screen health bars and skill/dash cooldown labels.
 - Original transparent SVG artwork for the hero and Dark Lord Akteynt, with floating idle motion, ground shadows, and phase-colored glow.
 - Directional hero rotation and lightweight cyan/purple/pink particle bursts for dash, slash, skill, boss-orb launch, and damage impacts.
+- Animated boss attack telegraph, short forward strike lunge, expanding slash arc, and brief hit-flash reaction.
 
 ## Open on Android
 1. Download the repository as a ZIP and extract it to a new folder.
