@@ -26,6 +26,7 @@ var victory := false
 var boss_windup := 0.0
 var boss_attack_cooldown := 0.0
 var hit_flash := 0.0
+var phase_two_announced := false
 
 func _process(delta: float) -> void:
 	if game_over:
@@ -78,9 +79,10 @@ func _update_boss(delta: float) -> void:
 	var phase_two := boss_hp <= 150
 	var boss_speed := BOSS_SPEED_PHASE_TWO if phase_two else BOSS_SPEED_PHASE_ONE
 
-	if phase_two and message_time <= 0.0:
+	if phase_two and not phase_two_announced:
+		phase_two_announced = true
 		message = "AKTEYNT ENTERS ABYSS PHASE"
-		message_time = 1.4
+		message_time = 1.8
 
 	if boss_windup > 0.0:
 		boss_windup = maxf(0.0, boss_windup - delta)
@@ -153,6 +155,7 @@ func _restart() -> void:
 	boss_windup = 0.0
 	boss_attack_cooldown = 0.0
 	hit_flash = 0.0
+	phase_two_announced = false
 	facing = Vector2.RIGHT
 	game_over = false
 	victory = false
