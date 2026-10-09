@@ -48,6 +48,13 @@ var arena_time := 0.0
 var hero_trail_timer := 0.0
 var footstep_timer := 0.0
 var hero_afterimages: Array[Dictionary] = []
+var combo_step := 0
+var combo_chain_timer := 0.0
+var combo_flash_timer := 0.0
+var boss_wave_timer := 0.0
+var boss_wave_radius := 0.0
+var boss_wave_hit := false
+var boss_wave_cooldown := 0.0
 
 func _process(delta: float) -> void:
 	if game_over:
@@ -58,6 +65,17 @@ func _process(delta: float) -> void:
 	hero_trail_timer = maxf(0.0, hero_trail_timer - delta)
 	footstep_timer = maxf(0.0, footstep_timer - delta)
 	_update_hero_afterimages(delta)
+	combo_chain_timer = maxf(0.0, combo_chain_timer - delta)
+	combo_flash_timer = maxf(0.0, combo_flash_timer - delta)
+	boss_wave_cooldown = maxf(0.0, boss_wave_cooldown - delta)
+	if combo_chain_timer <= 0.0:
+		combo_step = 0
+	if boss_wave_timer > 0.0:
+		boss_wave_timer = maxf(0.0, boss_wave_timer - delta)
+		boss_wave_radius = (1.0 - boss_wave_timer / 0.72) * 250.0
+		if not boss_wave_hit and absf(player_pos.distance_to(boss_pos) - boss_wave_radius) < 22.0 and dash_timer <= 0.0:
+			boss_wave_hit = true
+			_damage_player(22)
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	skill_cooldown = maxf(0.0, skill_cooldown - delta)
 	hurt_cooldown = maxf(0.0, hurt_cooldown - delta)
@@ -141,6 +159,14 @@ func _update_boss(delta: float) -> void:
 		message = "AKTEYNT ENTERS ABYSS PHASE"
 		message_time = 1.8
 
+	if phase_two and distance <= 210.0 and boss_wave_cooldown <= 0.0 and boss_wave_timer <= 0.0 and boss_windup <= 0.0:
+		boss_wave_timer = 0.72
+		boss_wave_radius = 0.0
+		boss_wave_hit = false
+		boss_wave_cooldown = 5.5
+		message = "ABYSS SHOCKWAVE! DASH THROUGH THE RING!"
+		message_time = 0.72
+		_spawn_particles(boss_pos, Color("#ff367e"), 14, 110.0)
 	if phase_two and distance > 165.0 and orb_cooldown <= 0.0 and orb_windup <= 0.0:
 		orb_windup = 0.65
 		message = "AKTEYNT SUMMONS AN ABYSS ORB!"
@@ -218,17 +244,25 @@ func _do_dash(direction: Vector2) -> void:
 func _do_attack() -> void:
 	if attack_cooldown > 0.0 or boss_hp <= 0 or game_over:
 		return
-	attack_cooldown = 0.42
-	slash_timer = 0.20
+	combo_step = (combo_step % 3) + 1 if combo_chain_timer > 0.0 else 1
+	combo_chain_timer = 0.72
+	combo_flash_timer = 0.24
+	attack_cooldown = 0.32 if combo_step == 1 else (0.28 if combo_step == 2 else 0.48)
+	slash_timer = 0.16 if combo_step < 3 else 0.30
 	var to_boss := boss_pos - player_pos
-	if to_boss.length() <= 118.0 and (to_boss.length() < 0.01 or facing.dot(to_boss.normalized()) > -0.25):
-		boss_hp = maxi(0, boss_hp - 18)
-		boss_hit_flash = 0.22
-		_spawn_particles(boss_pos, Color("#9bf3ff"), 18, 190.0)
+	var combo_damage := 12 if combo_step == 1 else (16 if combo_step == 2 else 26)
+	var combo_reach := 118.0 if combo_step < 3 else 142.0
+	if to_boss.length() <= combo_reach and (to_boss.length() < 0.01 or facing.dot(to_boss.normalized()) > -0.25):
+		boss_hp = maxi(0, boss_hp - combo_damage)
+		boss_hit_flash = 0.22 if combo_step < 3 else 0.34
+		_spawn_particles(boss_pos, Color("#9bf3ff") if combo_step < 3 else Color("#ffffff"), 18 if combo_step < 3 else 30, 190.0 if combo_step < 3 else 280.0)
 		hit_flash = 0.18
-		message = "DARK SLASH  -18"
+		message = "COMBO %d  -%d" % [combo_step, combo_damage]
 		message_time = 0.6
 		_check_victory()
+	else:
+		message = "COMBO %d" % combo_step
+		message_time = 0.35
 
 func _do_skill() -> void:
 	if skill_cooldown > 0.0 or boss_hp <= 0 or game_over:
@@ -278,6 +312,13 @@ func _restart() -> void:
 	hit_particles.clear()
 	boss_strike_timer = 0.0
 	boss_hit_flash = 0.0
+	combo_step = 0
+	combo_chain_timer = 0.0
+	combo_flash_timer = 0.0
+	boss_wave_timer = 0.0
+	boss_wave_radius = 0.0
+	boss_wave_hit = false
+	boss_wave_cooldown = 0.0
 	arena_time = 0.0
 	hero_trail_timer = 0.0
 	footstep_timer = 0.0
@@ -368,9 +409,15 @@ func _draw() -> void:
 		var nova_progress := 1.0 - nova_timer / 0.42
 		draw_circle(player_pos, 230.0 * nova_progress, Color(0.78, 0.20, 1.0, 0.18), true)
 		draw_circle(player_pos, 230.0 * nova_progress, Color(0.88, 0.48, 1.0, 0.8), false, 4.0)
+	if boss_wave_timer > 0.0:
+		var wave_alpha := clampf(boss_wave_timer / 0.72, 0.0, 1.0)
+		draw_circle(boss_pos, 68.0, Color(0.88, 0.12, 0.48, 0.10 + wave_alpha * 0.08), true)
+		draw_arc(boss_pos, boss_wave_radius, 0.0, TAU, 96, Color(1.0, 0.18, 0.58, wave_alpha), 8.0)
+		draw_arc(boss_pos, boss_wave_radius + 8.0, 0.0, TAU, 96, Color(0.70, 0.25, 1.0, wave_alpha * 0.65), 3.0)
 	if slash_timer > 0.0:
-		var slash_progress := slash_timer / 0.20
-		draw_arc(player_pos + facing * 22.0, 48.0 + (1.0 - slash_progress) * 14.0, facing.angle() - 1.15, facing.angle() + 1.15, 22, Color(0.75, 0.93, 1.0, slash_progress), 7.0)
+		var slash_progress := slash_timer / 0.30
+		var slash_color := Color(0.85, 0.96, 1.0, slash_progress) if combo_step < 3 else Color(1.0, 0.45, 0.88, slash_progress)
+		draw_arc(player_pos + facing * 22.0, 48.0 + (1.0 - slash_progress) * 25.0, facing.angle() - (1.15 if combo_step < 3 else 1.45), facing.angle() + (1.15 if combo_step < 3 else 1.45), 24, slash_color, 7.0 if combo_step < 3 else 11.0)
 	# Motion afterimages are drawn behind the hero, strongest during dash.
 	for ghost in hero_afterimages:
 		var ghost_pos: Vector2 = ghost["pos"]
@@ -425,6 +472,7 @@ func _draw() -> void:
 	draw_string(ThemeDB.fallback_font, Vector2(28, 47), "ABYSS ARENA  |  PHASE %d" % (2 if boss_hp <= 150 else 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#a89abf"))
 	_draw_bar(Vector2(28, 62), 230.0, 16.0, float(player_hp) / PLAYER_MAX_HP, Color("#45d5ff"))
 	draw_string(ThemeDB.fallback_font, Vector2(28, 98), "HERO  %d / %d" % [player_hp, PLAYER_MAX_HP], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
+	_draw_bar(Vector2(28, 105), 230.0, 4.0, 1.0 - skill_cooldown / 4.0, Color("#b85cff"))
 	_draw_bar(Vector2(screen_size.x - 278, 62), 250.0, 18.0, float(boss_hp) / BOSS_MAX_HP, Color("#d14aff") if boss_hp > 150 else Color("#ff367e"))
 	draw_string(ThemeDB.fallback_font, Vector2(screen_size.x - 278, 98), "DARK LORD AKTEYNT  %d / %d" % [boss_hp, BOSS_MAX_HP], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
 
@@ -437,7 +485,7 @@ func _draw() -> void:
 	_draw_button(Vector2(screen_size.x - 220, screen_size.y - 104), "ATTACK", Color("#8e37c7"))
 	_draw_button(Vector2(screen_size.x - 135, screen_size.y - 104), "SKILL", Color("#bd267f"))
 	_draw_button(Vector2(screen_size.x - 55, screen_size.y - 104), "DASH", Color("#2a9bd6"))
-	draw_string(ThemeDB.fallback_font, Vector2(screen_size.x - 258, screen_size.y - 52), "Skill: %.1fs   Dash: %.1fs" % [skill_cooldown, dash_cooldown], HORIZONTAL_ALIGNMENT_LEFT, 250, 10, Color("#d7c4ef"))
+	draw_string(ThemeDB.fallback_font, Vector2(screen_size.x - 258, screen_size.y - 52), "Combo: %d/3   Skill: %.1fs   Dash: %.1fs" % [combo_step, skill_cooldown, dash_cooldown], HORIZONTAL_ALIGNMENT_LEFT, 300, 10, Color("#d7c4ef"))
 	draw_string(ThemeDB.fallback_font, Vector2(20, screen_size.y - 14), "PC: WASD/ARROWS move | SPACE attack | E skill | SHIFT dash | R restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("#b6a8c9"))
 
 	if game_over:
