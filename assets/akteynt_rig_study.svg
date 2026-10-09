@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff5ff"/><stop offset=".5" stop-color="#cbb1e8"/><stop offset="1" stop-color="#6c4b9b"/></linearGradient>
+    <linearGradient id="cloth" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#38204f"/><stop offset="1" stop-color="#10091d"/></linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe5ff"/><stop offset=".5" stop-color="#d55bff"/><stop offset="1" stop-color="#7329b8"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <!-- Independent visual study sheet for future bone-separated artwork, not yet rig-bound. -->
+  <g id="rear-hair" stroke="#5c347c" stroke-width="2" stroke-linejoin="round">
+    <path fill="url(#hair)" d="M96 65 Q65 80 72 122 L54 184 81 165 92 120 101 94Z"/>
+    <path fill="url(#hair)" d="M159 65 Q190 80 184 122 L202 184 175 165 164 120 155 94Z"/>
+  </g>
+  <g id="crown-halo" fill="none" stroke="url(#metal)" stroke-width="4" filter="url(#glow)">
+    <path d="M75 66 Q70 21 99 38 L112 18 128 40 144 18 157 38 Q186 21 181 66"/>
+    <path d="M85 57 Q128 78 171 57" stroke="#ff73dc" stroke-width="2"/>
+  </g>
+  <g id="legs" fill="#100b1d" stroke="#a85be0" stroke-width="2">
+    <path d="M111 177 L126 178 122 222 107 228 105 220Z"/>
+    <path d="M132 178 L147 177 153 220 140 228 132 219Z"/>
+  </g>
+  <g id="skirt-left" fill="url(#cloth)" stroke="#a94be4" stroke-width="2">
+    <path d="M110 141 L128 145 119 193 86 216 99 177Z"/>
+    <path d="M105 156 L98 184 91 203" fill="none" stroke="#f25bd6"/>
+  </g>
+  <g id="skirt-right" fill="url(#cloth)" stroke="#a94be4" stroke-width="2">
+    <path d="M143 141 L128 145 137 193 170 216 157 177Z"/>
+    <path d="M151 156 L158 184 165 203" fill="none" stroke="#f25bd6"/>
+  </g>
+  <g id="torso" fill="url(#cloth)" stroke="#bd70f1" stroke-width="2">
+    <path d="M108 91 L128 83 148 91 158 132 145 155 128 165 111 155 98 132Z"/>
+    <path d="M128 99 L137 113 128 128 119 113Z" fill="#ff55d5" stroke="#ffe1ff" filter="url(#glow)"/>
+    <path d="M108 94 L94 105 102 130 113 119 M148 94 L162 105 154 130 143 119" fill="none" stroke="#f1baff" stroke-width="4"/>
+  </g>
+  <g id="arms" fill="url(#cloth)" stroke="#d48aff" stroke-width="3" stroke-linejoin="round">
+    <path d="M106 98 L94 102 82 130 91 137 106 118Z"/>
+    <path d="M150 98 L162 102 174 130 165 137 150 118Z"/>
+  </g>
+  <g id="head" stroke="#6d3c88" stroke-width="2">
+    <path d="M109 57 Q128 43 147 57 L143 86 128 101 113 86Z" fill="#f1d9ee"/>
+    <path d="M110 73 L121 77 M135 77 L146 73" stroke="#e33acb" stroke-width="3"/>
+    <path d="M119 88 Q128 94 137 88" fill="none" stroke="#8b437f"/>
+  </g>
+  <g id="front-hair" fill="url(#hair)" stroke="#694184" stroke-width="2" stroke-linejoin="round">
+    <path d="M101 64 Q98 39 120 42 L128 54 136 42 Q158 39 155 64 L146 75 143 60 132 68 128 57 122 69 112 60 109 76Z"/>
+    <path d="M108 73 L100 103 112 94 116 75 M148 73 L156 103 144 94 140 75" fill="url(#hair)"/>
+  </g>
+  <g id="weapon" filter="url(#glow)">
+    <path d="M177 128 L183 124 215 58 210 55Z" fill="#fff0ff" stroke="#d95eff" stroke-width="2"/>
+    <path d="M172 133 L186 126" stroke="#ff62d5" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <g id="floating-runes" fill="#ff65d7" filter="url(#glow)">
+    <path d="M66 91 l5 -10 5 10 -5 7Z"/><path d="M185 91 l5 -10 5 10 -5 7Z"/><path d="M76 142 l4 -8 4 8 -4 6Z"/><path d="M173 142 l4 -8 4 8 -4 6Z"/>
+  </g>
+</svg>
