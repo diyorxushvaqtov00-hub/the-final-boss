@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+<defs>
+ <radialGradient id="a"><stop stop-color="#ff287f" stop-opacity=".55"/><stop offset="1" stop-color="#7d16b9" stop-opacity="0"/></radialGradient>
+ <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6d238e"/><stop offset=".45" stop-color="#2b124e"/><stop offset="1" stop-color="#10091f"/></linearGradient>
+ <linearGradient id="horn" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0ff"/><stop offset=".4" stop-color="#c78aff"/><stop offset="1" stop-color="#5b237d"/></linearGradient>
+ <linearGradient id="cape" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#6e164f"/><stop offset="1" stop-color="#180923"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="5"/></filter>
+</defs>
+<ellipse cx="80" cy="126" rx="49" ry="19" fill="#b32cff" opacity=".35" filter="url(#glow)"/>
+<ellipse cx="80" cy="128" rx="38" ry="10" fill="#08040f" opacity=".85"/>
+<!-- crown horns -->
+<path d="M46 49 Q20 29 28 7 Q44 20 57 39 L65 34 80 43 95 34 103 39 Q116 18 133 8 Q139 33 114 51Z" fill="url(#horn)" stroke="#f2c9ff" stroke-width="2"/>
+<path d="M43 43 L33 19 53 42 M117 43 L129 20 106 42" fill="none" stroke="#fff0ff" stroke-width="2"/>
+<!-- cape -->
+<path d="M49 64 Q26 72 23 118 L48 108 62 138 80 121 98 138 112 108 137 118 Q133 75 111 64Z" fill="url(#cape)" stroke="#a52bd3" stroke-width="2"/>
+<path d="M48 72 L38 110 58 102 70 128 80 109 90 128 102 102 122 110 112 72Z" fill="#261039"/>
+<!-- shoulder spikes -->
+<path d="M49 65 L26 53 36 78 21 85 53 91Z M111 65 L134 53 124 78 139 85 107 91Z" fill="#54216e" stroke="#d66bff" stroke-width="2"/>
+<!-- neck -->
+<path d="M67 57 L67 70 93 70 93 57Z" fill="#5c2a73"/>
+<!-- face -->
+<path d="M48 33 L112 33 108 62 Q102 82 80 86 Q58 82 52 62Z" fill="#c7a2d7" stroke="#f0caff" stroke-width="2"/>
+<!-- hair/crown shadow -->
+<path d="M45 44 Q39 23 62 22 L80 27 98 21 Q119 26 115 47 L105 42 98 52 91 42 80 47 69 42 59 53 53 43Z" fill="#170d2b" stroke="#a45dc7" stroke-width="2"/>
+<!-- glowing eyes -->
+<path d="M55 53 L73 56 65 62Z M87 56 L105 53 95 62Z" fill="#ff267e"/>
+<path d="M59 55 L68 57 M92 57 L101 55" stroke="#fff4ff" stroke-width="2"/>
+<path d="M75 66 L80 71 85 66" fill="none" stroke="#6e2b78" stroke-width="2"/>
+<!-- chest armor -->
+<path d="M54 75 L80 88 106 75 99 108 80 119 61 108Z" fill="url(#armor)" stroke="#d55bff" stroke-width="2.5"/>
+<path d="M80 89 L91 101 80 112 69 101Z" fill="#ff287f" stroke="#ffc0f7" stroke-width="2"/>
+<path d="M80 92 L84 101 80 107 76 101Z" fill="#fff4ff"/>
+<!-- armor ribs -->
+<path d="M58 83 L69 94 M102 83 L91 94 M62 105 L72 111 M98 105 L88 111" stroke="#a650cf" stroke-width="2"/>
+<!-- arm blades -->
+<path d="M34 82 L21 103 42 96 48 110 55 91Z M126 82 L139 103 118 96 112 110 105 91Z" fill="#3b1758" stroke="#c44df0" stroke-width="2"/>
+</svg>
