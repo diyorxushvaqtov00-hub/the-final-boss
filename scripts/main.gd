@@ -257,6 +257,8 @@ func _do_attack() -> void:
 	if attack_cooldown > 0.0 or boss_hp <= 0 or game_over:
 		return
 	combo_step = (combo_step % 3) + 1 if combo_chain_timer > 0.0 else 1
+	slash_angle = facing.angle()
+	slash_power = 1.0 if combo_step == 1 else (1.25 if combo_step == 2 else 1.65)
 	combo_chain_timer = 0.72
 	combo_flash_timer = 0.24
 	attack_cooldown = 0.32 if combo_step == 1 else (0.28 if combo_step == 2 else 0.48)
@@ -470,10 +472,23 @@ func _draw() -> void:
 		draw_circle(boss_pos, 68.0, Color(0.88, 0.12, 0.48, 0.10 + wave_alpha * 0.08), true)
 		draw_arc(boss_pos, boss_wave_radius, 0.0, TAU, 96, Color(1.0, 0.18, 0.58, wave_alpha), 8.0)
 		draw_arc(boss_pos, boss_wave_radius + 8.0, 0.0, TAU, 96, Color(0.70, 0.25, 1.0, wave_alpha * 0.65), 3.0)
+	# Directional blade trail follows the facing direction captured at attack start.
 	if slash_timer > 0.0:
-		var slash_progress := slash_timer / 0.30
-		var slash_color := Color(0.85, 0.96, 1.0, slash_progress) if combo_step < 3 else Color(1.0, 0.45, 0.88, slash_progress)
-		draw_arc(player_pos + facing * 22.0, 48.0 + (1.0 - slash_progress) * 25.0, facing.angle() - (1.15 if combo_step < 3 else 1.45), facing.angle() + (1.15 if combo_step < 3 else 1.45), 24, slash_color, 7.0 if combo_step < 3 else 11.0)
+		var slash_progress := clampf(slash_timer / 0.30, 0.0, 1.0)
+		var slash_fade := slash_progress
+		var slash_center := player_pos + Vector2.RIGHT.rotated(slash_angle) * 26.0
+		var slash_radius := (52.0 + (1.0 - slash_progress) * 28.0) * slash_power
+		var slash_color := Color("#ff4baf") if slash_power > 1.5 else Color("#bd72ff")
+		var start_angle := slash_angle - 1.10 + (1.0 - slash_progress) * 0.35
+		var end_angle := slash_angle + 1.10 + (1.0 - slash_progress) * 0.35
+		draw_arc(slash_center, slash_radius, start_angle, end_angle, 32, Color(slash_color.r, slash_color.g, slash_color.b, slash_fade), 5.0 * slash_power)
+		draw_arc(slash_center, slash_radius - 7.0, start_angle + 0.12, end_angle - 0.12, 24, Color(1.0, 0.9, 1.0, slash_fade * 0.85), 2.0)
+		if slash_power > 1.5:
+			for ray in range(7):
+				var ray_angle := slash_angle - 0.95 + float(ray) * 0.31
+				var ray_start := player_pos + Vector2.RIGHT.rotated(ray_angle) * 34.0
+				var ray_end := player_pos + Vector2.RIGHT.rotated(ray_angle) * 118.0
+				draw_line(ray_start, ray_end, Color(1.0, 0.18, 0.58, slash_fade * 0.62), 2.0)
 	# Motion afterimages are drawn behind the hero, strongest during dash.
 	for ghost in hero_afterimages:
 		var ghost_pos: Vector2 = ghost["pos"]
