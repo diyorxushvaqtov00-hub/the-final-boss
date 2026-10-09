@@ -8,6 +8,7 @@
 - **E** / SKILL — Abyss Nova (42 damage, 4-second cooldown).
 - **Shift** / DASH — quick dodge with a short damage-avoidance window (1.6-second cooldown).
 - Akteynt has two combat phases; at half health, the boss moves faster and attacks harder.
+- In phase two, Akteynt charges and launches a visible Abyss Orb projectile; dodge it or take 16 damage.
 - Boss attacks have a visible wind-up cue so the player can try to dodge.
 - Victory, defeat, and restart states.
 - On-screen health bars and skill/dash cooldown labels.
