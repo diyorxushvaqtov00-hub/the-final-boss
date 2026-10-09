@@ -61,3 +61,9 @@ The GitHub Actions workflow runs a headless Godot project check on pushes and pu
 - The hero sprite is slightly larger for better mobile readability.
 
 **Honest status:** this is still an in-progress prototype. The supplied concept image is the art target; full multi-frame character animation, a rigged skeleton, and final-quality arena assets are not complete or verified in Godot yet.
+
+
+## Akteynt 2D rig milestone (scaffold)
+Added `scenes/akteynt_rig.tscn` and `scripts/akteynt_rig.gd` as the first bone-rig scaffold for the Abyss Empress. The hierarchy includes torso, head, rear hair, both arms, skirt panels, legs, and weapon bones. The controller provides procedural pose states for idle breathing, running, dash, attack, finisher, hurt recoil, and victory.
+
+**Important limitation:** this is a rig scaffold, not the finished character. The current concept SVG has not yet been split into clean, independently pivoted artwork layers and bound to these bones; the rig is not yet used by the main fight scene. Godot runtime validation has not been performed in this environment.
