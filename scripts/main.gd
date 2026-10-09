@@ -390,8 +390,10 @@ func _spawn_particles(origin: Vector2, color: Color, count: int, power: float) -
 func _update_hit_particles(delta: float) -> void:
 	for i in range(hit_particles.size() - 1, -1, -1):
 		var particle: Dictionary = hit_particles[i]
-		particle["pos"] = (particle["pos"] as Vector2) + (particle["velocity"] as Vector2) * delta
-		particle["velocity"] = (particle["velocity"] as Vector2) * 0.90
+		var particle_pos: Vector2 = particle["pos"]
+		var particle_velocity: Vector2 = particle["velocity"]
+		particle["pos"] = particle_pos + particle_velocity * delta
+		particle["velocity"] = particle_velocity * 0.90
 		particle["life"] = float(particle["life"]) - delta
 		if float(particle["life"]) <= 0.0:
 			hit_particles.remove_at(i)
