@@ -19,7 +19,7 @@ var boss_hp := BOSS_MAX_HP
 var attack_cooldown := 0.0
 var skill_cooldown := 0.0
 var hurt_cooldown := 0.0
-var message := "DARK LORD AKTEYNT AWAKENS"
+var message := "AKTEYNT • ABYSS EMPRESS AWAKENS"
 var message_time := 2.5
 var touch_direction := Vector2.ZERO
 var move_touch_id := -1
@@ -285,7 +285,7 @@ func _check_victory() -> void:
 	if boss_hp <= 0:
 		game_over = true
 		victory = true
-		message = "THE DARK LORD HAS FALLEN"
+		message = "THE ABYSS EMPRESS HAS FALLEN"
 		message_time = 999.0
 
 func _restart() -> void:
@@ -326,7 +326,7 @@ func _restart() -> void:
 	facing = Vector2.RIGHT
 	game_over = false
 	victory = false
-	message = "DARK LORD AKTEYNT AWAKENS"
+	message = "AKTEYNT • ABYSS EMPRESS AWAKENS"
 	message_time = 2.0
 
 func _input(event: InputEvent) -> void:
@@ -458,7 +458,7 @@ func _draw() -> void:
 	if hit_flash > 0.0 and hurt_cooldown > 0.0:
 		draw_circle(player_pos, 42.0, Color(1.0, 0.15, 0.25, 0.22))
 	draw_set_transform(player_pos + Vector2(0, hero_bob), facing.angle(), Vector2.ONE)
-	draw_texture_rect(HERO_TEXTURE, Rect2(-42, -42, 84, 84), false)
+	draw_texture_rect(HERO_TEXTURE, Rect2(-49, -49, 98, 98), false)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# Tiny particles make dashes and hits feel responsive without heavy assets.
@@ -489,18 +489,19 @@ func _draw() -> void:
 			var strike_fade := boss_strike_timer / 0.30
 			var strike_angle := (player_pos - boss_pos).angle()
 			draw_arc(boss_pos, 94.0 + (1.0 - strike_fade) * 24.0, strike_angle - 1.0, strike_angle + 1.0, 24, Color(1.0, 0.16, 0.52, strike_fade), 10.0)
-		var boss_rect := Rect2(boss_pos + Vector2(-64, -72 + boss_bob), Vector2(128, 128))
+		var boss_scale := 1.0 if boss_hp > 150 else 1.10 + sin(arena_time * 2.8) * 0.025
+		var boss_rect := Rect2(boss_pos + Vector2(-82 * boss_scale, -96 * boss_scale + boss_bob), Vector2(164 * boss_scale, 164 * boss_scale))
 		draw_texture_rect(AKTEYNT_TEXTURE, boss_rect, false)
 	else:
 		draw_circle(boss_pos, 35.0, Color(0.55, 0.25, 0.75, 0.25))
 
 	draw_string(ThemeDB.fallback_font, Vector2(28, 28), "THE FINAL BOSS", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("#e8d8ff"))
-	draw_string(ThemeDB.fallback_font, Vector2(28, 47), "ABYSS ARENA  |  PHASE %d" % (2 if boss_hp <= 150 else 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#a89abf"))
+	draw_string(ThemeDB.fallback_font, Vector2(28, 47), "ABYSS EMPRESS  |  PHASE %d" % (2 if boss_hp <= 150 else 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#a89abf"))
 	_draw_bar(Vector2(28, 62), 230.0, 16.0, float(player_hp) / PLAYER_MAX_HP, Color("#45d5ff"))
 	draw_string(ThemeDB.fallback_font, Vector2(28, 98), "HERO  %d / %d" % [player_hp, PLAYER_MAX_HP], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
 	_draw_bar(Vector2(28, 105), 230.0, 4.0, 1.0 - skill_cooldown / 4.0, Color("#b85cff"))
 	_draw_bar(Vector2(screen_size.x - 278, 62), 250.0, 18.0, float(boss_hp) / BOSS_MAX_HP, Color("#d14aff") if boss_hp > 150 else Color("#ff367e"))
-	draw_string(ThemeDB.fallback_font, Vector2(screen_size.x - 278, 98), "DARK LORD AKTEYNT  %d / %d" % [boss_hp, BOSS_MAX_HP], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
+	draw_string(ThemeDB.fallback_font, Vector2(screen_size.x - 278, 98), "AKTEYNT • ABYSS EMPRESS  %d / %d" % [boss_hp, BOSS_MAX_HP], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
 
 	if message_time > 0.0:
 		draw_string(ThemeDB.fallback_font, Vector2(0, 132), message, HORIZONTAL_ALIGNMENT_CENTER, screen_size.x, 18, Color("#f0d7ff"))
