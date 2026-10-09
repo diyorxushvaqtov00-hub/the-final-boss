@@ -13,6 +13,7 @@
 - Victory, defeat, and restart states.
 - On-screen health bars and skill/dash cooldown labels.
 - Original transparent SVG artwork for the hero and Dark Lord Akteynt, with floating idle motion, ground shadows, and phase-colored glow.
+- Directional hero rotation and lightweight cyan/purple/pink particle bursts for dash, slash, skill, boss-orb launch, and damage impacts.
 
 ## Open on Android
 1. Download the repository as a ZIP and extract it to a new folder.
@@ -43,7 +44,7 @@ The GitHub Actions workflow runs a headless Godot project check on pushes and pu
 
 ## Roadmap
 1. Run automated project checks and confirm the updated build on Android.
-2. Add multi-frame run/attack animations and sprite effects.
+2. Add multi-frame run/attack animations and frame-based sprite effects.
 3. Add sound effects, more enemy patterns, and additional arenas.
 4. Separate gameplay into reusable scenes and scripts.
 5. Set up a reproducible Android APK build.
