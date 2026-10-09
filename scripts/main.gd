@@ -501,10 +501,14 @@ func _draw() -> void:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# Hero sprite: subtle idle bob and a shadow keep the character grounded.
 	var hero_bob := sin(Time.get_ticks_msec() * 0.006) * 2.2
+	var attack_lunge := Vector2.ZERO
+	if slash_timer > 0.0:
+		var attack_progress := 1.0 - clampf(slash_timer / 0.30, 0.0, 1.0)
+		attack_lunge = Vector2.RIGHT.rotated(slash_angle) * sin(attack_progress * PI) * (13.0 if slash_power > 1.5 else 7.0)
 	draw_ellipse_shadow(player_pos + Vector2(0, 25), Vector2(24, 8), Color(0.02, 0.01, 0.06, 0.78))
 	if hit_flash > 0.0 and hurt_cooldown > 0.0:
 		draw_circle(player_pos, 42.0, Color(1.0, 0.15, 0.25, 0.22))
-	draw_set_transform(player_pos + Vector2(0, hero_bob), facing.angle(), Vector2.ONE)
+	draw_set_transform(player_pos + attack_lunge + Vector2(0, hero_bob), facing.angle(), Vector2(1.0 + (0.08 if slash_timer > 0.0 else 0.0), 1.0 - (0.04 if slash_timer > 0.0 else 0.0)))
 	draw_texture_rect(HERO_TEXTURE, Rect2(-49, -49, 98, 98), false)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
